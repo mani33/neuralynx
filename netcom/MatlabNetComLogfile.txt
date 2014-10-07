@@ -1,0 +1,20 @@
+NetCom Log File Opened - File Name:  MatlabNetComLogfile.txt
+Time Opened: (mm/dd/yyyy): 10/07/2014 At Time: 10:16:06
+NetCom Version 2.1.1
+
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:06 - NetworkNodeClient::InitializeClient() - Attempting to initialize Message Client connection.  serverName: 130.91.206.111, portNumber: 26200
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:06 - NetworkNodeClient::InitializeClient() - Attempting to create Client Socket
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:06 - NetworkNodeClient::InitializeClient() - Client Socket created successfully
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:06 - NetworkNodeClient::InitializeClient() - Attempting to request information about our connection.
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:06 - NetworkNodeClient::InitializeClient() - Request for information was successful.
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:06 - NetworkNodeClient::InitializeClient() - Attempting to establish a connection to our server.
+-* ERROR *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:27 - NetworkNodeClient::ConnectToServer() - Error Connecting To Server, error code: WSAETIMEDOUT - Attempt to connect timed out without establishing a connection.
+-* ERROR *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:27 - NetworkNodeClient::InitializeClient() - Failed to connect to message server.
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:27 - NetworkNodeClient::InitializeClient() - Attempting to initialize Message Client connection.  serverName: 130.91.206.111, portNumber: 26100
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:27 - NetworkNodeClient::InitializeClient() - Attempting to create Client Socket
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:27 - NetworkNodeClient::InitializeClient() - Client Socket created successfully
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:27 - NetworkNodeClient::InitializeClient() - Attempting to request information about our connection.
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:27 - NetworkNodeClient::InitializeClient() - Request for information was successful.
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:27 - NetworkNodeClient::InitializeClient() - Attempting to establish a connection to our server.
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:27 - NetworkNodeClient::InitializeClient() - Connection successfully established
+-* NOTICE *- (mm/dd/yyyy): 10/07/2014 At Time: 10:16:27 - NetworkNodeClient::InitializeClient() - Message Client successfully initialized
