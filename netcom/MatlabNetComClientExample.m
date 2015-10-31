@@ -36,7 +36,7 @@ else
     disp 'PASSED set the application name'
 end
 
-%get a list of all objects in Cheetah, along with their types.
+%% get a list of all objects in Cheetah, along with their types.
 [succeeded, cheetahObjects, cheetahTypes] = NlxGetCheetahObjectsAndTypes;
 if succeeded == 0
     disp 'FAILED get cheetah objects and types'
@@ -44,7 +44,7 @@ else
     disp 'PASSED get cheetah objects and types'
 end
 
-%open up a stream for all objects
+%% open up a stream for all objects
 for index = 1:length(cheetahObjects)
     succeeded = NlxOpenStream(cheetahObjects(index));
     if succeeded == 0
@@ -55,7 +55,7 @@ end;
 if succeeded == 1
     disp 'PASSED open stream for all current objects'
 end
-
+%%
 %send out an event so that there is something in the event buffer when
 %this script queries the event buffer  You can use NlxSendCommand to send
 %any Cheetah command to Cheetah.
