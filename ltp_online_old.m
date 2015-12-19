@@ -1,35 +1,35 @@
-function varargout = ltp_online(varargin)
-% LTP_ONLINE MATLAB code for ltp_online.fig
-%      LTP_ONLINE, by itself, creates a new LTP_ONLINE or raises the existing
+function varargout = ltp_online_old(varargin)
+% LTP_ONLINE_OLD MATLAB code for ltp_online_old.fig
+%      LTP_ONLINE_OLD, by itself, creates a new LTP_ONLINE_OLD or raises the existing
 %      singleton*.
 %
-%      H = LTP_ONLINE returns the handle to a new LTP_ONLINE or the handle to
+%      H = LTP_ONLINE_OLD returns the handle to a new LTP_ONLINE_OLD or the handle to
 %      the existing singleton*.
 %
-%      LTP_ONLINE('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in LTP_ONLINE.M with the given input arguments.
+%      LTP_ONLINE_OLD('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in LTP_ONLINE_OLD.M with the given input arguments.
 %
-%      LTP_ONLINE('Property','Value',...) creates a new LTP_ONLINE or raises the
+%      LTP_ONLINE_OLD('Property','Value',...) creates a new LTP_ONLINE_OLD or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before ltp_online_OpeningFcn gets called.  An
+%      applied to the GUI before ltp_online_old_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to ltp_online_OpeningFcn via varargin.
+%      stop.  All inputs are passed to ltp_online_old_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to start (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help ltp_online
+% Edit the above text to modify the response to help ltp_online_old
 
-% Last Modified by GUIDE v2.5 08-Dec-2015 09:47:09
+% Last Modified by GUIDE v2.5 31-Oct-2015 09:02:56
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
     'gui_Singleton',  gui_Singleton, ...
-    'gui_OpeningFcn', @ltp_online_OpeningFcn, ...
-    'gui_OutputFcn',  @ltp_online_OutputFcn, ...
+    'gui_OpeningFcn', @ltp_online_old_OpeningFcn, ...
+    'gui_OutputFcn',  @ltp_online_old_OutputFcn, ...
     'gui_LayoutFcn',  [] , ...
     'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,15 +44,15 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before ltp_online is made visible.
-function ltp_online_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before ltp_online_old is made visible.
+function ltp_online_old_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to ltp_online (see VARARGIN)
+% varargin   command line arguments to ltp_online_old (see VARARGIN)
 
-% Choose default command line output for ltp_online
+% Choose default command line output for ltp_online_old
 handles.slope_win = 1; %  ms
 handles.output = hObject;
 handles.pre_event_time = 5; % ms
@@ -88,17 +88,16 @@ save('tempSlopeData','tempSlopeData')
 save('tempPopspikeData','tempPopspikeData')
 save('ltpSlopeData','ltpSlopeData')
 save('ltpPopspikeData','ltpPopspikeData')
-set(handles.slope_latency_offset,'String','0')
 set(handles.bin_size,'String',5); % 5 min bin size
 set(handles.time_offset,'String','0')
 guidata(hObject, handles);
 
-% UIWAIT makes ltp_online wait for user response (see UIRESUME)
+% UIWAIT makes ltp_online_old wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = ltp_online_OutputFcn(hObject, eventdata, handles)
+function varargout = ltp_online_old_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -121,9 +120,7 @@ handles.cheetahObjects = cheetahObjects;
 handles.cheetahTypes = cheetahTypes;
 handles.sel_data = {};
 handles.sel_time = {};
-[~,dd] =  NlxSendCommand('-GetDataDirectory ');
-dd = strtrim(strrep( dd{:},'"',''));
-handles.cheetah_data_dir = dd;
+
 guidata(hObject,handles)
 
 
@@ -247,30 +244,6 @@ t = (tvec - handles.temp.event_ts)/1000; % ms
 segSel = t >= (-handles.pre) & t <= handles.post;
 handles.temp.uV = d(segSel);
 handles.temp.t = t(segSel);
-
-% save traces if asked for
-if logical(get(handles.save_traces,'Value'))
-    % Get some metadata
-    data = struct;
-%     obj = handles.objectToRetrieve;
-%     [~,data.high_cut] =  NlxSendCommand('-GetAnalogHighCutFrequency t1c1');
-%     [~,data.low_cut] =  NlxSendCommand(['-GetAnalogLowCutFrequency ' obj]);
-    data.Fs = handles.Fs;
-    dataPath = fullfile(handles.cheetah_data_dir,'EventTrigTraces');
-    if ~exist(dataPath,'dir')
-        mkdir(dataPath)
-    end
-    % create file name based on current time
-    ctime = round(clock);
-    fnc = sprintf('h%02dm%02ds%02d.mat',ctime(4),ctime(5),ctime(6));
-    fn = fullfile(dataPath,fnc);
-    data.t1_ms = handles.temp.t(1); % ms
-    data.uV = handles.temp.uV; % 
-    data.event_ts_us = handles.temp.event_ts; 
-    data.chan = handles.objectToRetrieve;%#ok
-    % Save data
-    save(fn,'data')
-end
 plot_raw_trace(handles)
 
 function plot_raw_trace(handles)
@@ -394,12 +367,10 @@ tic
 
 % Get pulses
 handles.n_pre_pulses = str2double(get(handles.nPrePulses,'String'));
-% handles.n_ind_pulses = str2double(get(handles.nInductionPulses,'String'));
-% handles.n_post_pulses = str2double(get(handles.nPostPulses,'String'));
+handles.n_ind_pulses = str2double(get(handles.nInductionPulses,'String'));
+handles.n_post_pulses = str2double(get(handles.nPostPulses,'String'));
 % nTestStim = handles.n_pre_pulses + handles.n_post_pulses;
 
-handles.n_ind_pulses = 0;
-handles.n_post_pulses = 0;
 cc = 0;
 ddd = str2double(get(handles.trial_curr,'String'));
 v = logical(get(handles.trial_curr,'Value'));
@@ -544,7 +515,7 @@ function load_resp_params_Callback(hObject, eventdata, handles)
 % hObject    handle to load_resp_params (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[fn,pn] = uigetfile('*.mat','Choose a example slope file','E:\CheetahData\');
+[fn,pn] = uigetfile('*.mat','Choose a example slope file','C:\CheetahData\');
 fin = fullfile(pn,fn);
 x = load(fin);
 fn = fields(x);
@@ -609,7 +580,7 @@ if np == 4
 else
     nnp = 2;
 end
-
+    
 if nnp == 2
     [h,tt,yy,ypi] = get_popspike_height(t,y,bounds([1 end]),'auto',true);
 elseif nnp==4
@@ -660,10 +631,6 @@ curr = handles.exp.curr;
 ex_curr = sd(:,1);
 [~,ex_ind] = min(abs(ex_curr-curr));
 lat = sd(ex_ind,3);
-
-% Add custom offset to the latency
-offset = str2double(get(handles.slope_latency_offset,'String'))
-lat = lat + offset;
 sind = find(t > lat & t < (lat + handles.slope_win));
 ts = t(sind);
 ys = y(sind);
@@ -694,7 +661,7 @@ x = d(:,2);
 b= 5;
 [data(:,1),data(:,2),data(:,3)] = bin_slopes(x,t,b);
 
-
+    
 function [tb,bs,se] = bin_slopes(x,t,b)
 tw = diff(t(1:2));
 ns = round(b/tw);
@@ -778,7 +745,7 @@ load('ltpPopspikeData')
 ltp.popspike_data = ltpPopspikeData;
 
 % ltp.avg_slope_data = compute_averaged_slope_data(ltpSlopeData);
-fin = fullfile('E:\CheetahData\',['ltp_slope_data_' get_data_epoch(handles)]);
+fin = fullfile('C:\CheetahData\',['ltp_slope_data_' get_data_epoch(handles)]);
 uisave('ltp',fin);
 
 
@@ -896,9 +863,9 @@ function bin_size_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% get(hObject,'String') returns contents of bin_size as text
-handles.bin_val = str2double(get(hObject,'String')); % returns contents of bin_size as a double
-guidata(hObject,handles)
+% Hints: get(hObject,'String') returns contents of bin_size as text
+%        str2double(get(hObject,'String')) returns contents of bin_size as a double
+
 
 % --- Executes during object creation, after setting all properties.
 function bin_size_CreateFcn(hObject, eventdata, handles)
@@ -929,7 +896,7 @@ function load_old_data_Callback(hObject, eventdata, handles)
 % hObject    handle to load_old_data (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[fn,pn] = uigetfile('*.mat','Choose a example slope file','E:\CheetahData\');
+[fn,pn] = uigetfile('*.mat','Choose a example slope file','C:\CheetahData\');
 fin = fullfile(pn,fn);
 load(fin)
 if isfield(ltp,'slope_data')
@@ -975,7 +942,7 @@ ep = get(ob,'String');
 
 % --- Executes when selected object is changed in color_selected.
 function color_selected_SelectionChangeFcn(hObject, eventdata, handles)
-% hObject    handle to the selected object in color_selected
+% hObject    handle to the selected object in color_selected 
 % eventdata  structure with the following fields (see UIBUTTONGROUP)
 %	EventName: string 'SelectionChanged' (read only)
 %	OldValue: handle of the previously selected object or empty if none was selected
@@ -1151,7 +1118,7 @@ if ~isempty(rd)
     sr = cellfun(@(x) x(:)',sr,'uni',false);
     sr = cat(1,sr{:});
     ar = mean(sr,1);
-    
+   
     handles.avg.t = t(1:ml);
     handles.avg.y = ar;
     guidata(hObject,handles)
@@ -1184,20 +1151,20 @@ axes(handles.slope_vs_popspike)
 cla
 
 
-% % --- Executes on button press in new_example_params.
-% function new_example_params_Callback(hObject, eventdata, handles)
-% % hObject    handle to new_example_params (see GCBO)
-% % eventdata  reserved - to be defined in a future version of MATLAB
-% % handles    structure with handles and user data (see GUIDATA)
-% getSlope = logical(get(handles.slope_measure,'Value'));
-% getPopspike = logical(get(handles.popspike_measure,'Value'));
-% set(hObject,'Value',0)
-% if getSlope
-%     recompute_example_slope_params(hObject, eventdata, handles)
-% end
-% if getPopspike
-%     recompute_example_popspike_params(hObject, eventdata, handles)
-% end
+% --- Executes on button press in new_example_params.
+function new_example_params_Callback(hObject, eventdata, handles)
+% hObject    handle to new_example_params (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+getSlope = logical(get(handles.slope_measure,'Value'));
+getPopspike = logical(get(handles.popspike_measure,'Value'));
+set(hObject,'Value',0)
+if getSlope
+    recompute_example_slope_params(hObject, eventdata, handles)
+end
+if getPopspike
+    recompute_example_popspike_params(hObject, eventdata, handles)
+end
 
 function recompute_example_popspike_params(hObject,eventsdata,handles)
 
@@ -1208,7 +1175,7 @@ plot(t,y,'k')
 hold on
 
 title('PopSpike Measurement')
-[bounds,~] = ginput(4);
+[bounds,~] = ginput(4);  
 handles.new.popspike_learning_data = [handles.exp.curr bounds(:)'];
 guidata(hObject,handles)
 
@@ -1248,56 +1215,17 @@ function accept_new_params_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of accept_new_params
 
 if logical(get(hObject,'Value'))
-    %     if ~isempty(handles.new.slope_learning_data) && logical(get(handles.slope_measure,'Value'));
-    %         load('newSlopeLearningData')
-    %         handles.exp.slope_learning_data = handles.new.slope_learning_data;
-    %     end
-    if exist('newSlopeLearningData.mat','file') && logical(get(handles.slope_measure,'Value'));
+%     if ~isempty(handles.new.slope_learning_data) && logical(get(handles.slope_measure,'Value'));
+%         load('newSlopeLearningData')
+%         handles.exp.slope_learning_data = handles.new.slope_learning_data;
+%     end
+  if exist('newSlopeLearningData.mat','file') && logical(get(handles.slope_measure,'Value'));
         load('newSlopeLearningData')
         handles.exp.slope_learning_data = newSlopeLearningData;
         set(hObject,'Value',false)
     end
     if ~isempty(handles.new.popspike_learning_data) && logical(get(handles.popspike_measure,'Value'));
         handles.exp.popspike_learning_data = handles.new.popspike_learning_data;
-        set(hObject,'Value',false)
+         set(hObject,'Value',false)
     end
 end
-
-
-% --- Executes on button press in save_traces.
-function save_traces_Callback(hObject, eventdata, handles)
-% hObject    handle to save_traces (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of save_traces
-
-
-
-function slope_latency_offset_Callback(hObject, eventdata, handles)
-% hObject    handle to slope_latency_offset (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of slope_latency_offset as text
-%        str2double(get(hObject,'String')) returns contents of slope_latency_offset as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function slope_latency_offset_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slope_latency_offset (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-% --- Executes on button press in new_example_params.
-function new_example_params_Callback(hObject, eventdata, handles)
-% hObject    handle to new_example_params (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)

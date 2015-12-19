@@ -22,7 +22,7 @@ function varargout = iocurve_online(varargin)
 
 % Edit the above text to modify the response to help iocurve_online
 
-% Last Modified by GUIDE v2.5 21-Sep-2015 09:46:06
+% Last Modified by GUIDE v2.5 16-Dec-2015 11:57:57
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -358,6 +358,7 @@ d = tempSlopeData;
 slope = abs(d(end,2));
 plot(d(end,1),slope,'kO','markerfacecolor','k')
 hold on
+grid on
 xlabel('Current (\muA)')
 % ylabel('Abs fEPSP slope (V/s)')
 title('Slope I/O Curve')
@@ -375,7 +376,7 @@ xlabel('Current (\muA)')
 % ylabel('Abs Popspike Amp (V)')
 title('PopSpike I/O Curve')
 box off
-
+grid on
 function postEventTime_Callback(hObject, eventdata, handles)
 % hObject    handle to postEventTime (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -416,6 +417,7 @@ function stop_watching_Callback(hObject, eventdata, handles)
 % hObject    handle to stop_watching (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+set(handles.run,'Value',0)
 handles.stop_data = logical(get(hObject,'Value'));
 guidata(hObject,handles)
 
@@ -494,7 +496,7 @@ function load_curr_levels_file_Callback(hObject, eventdata, handles)
 % hObject    handle to load_curr_levels_file (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[fn,pn] = uigetfile('*.mat','Choose a current levels file','C:\CheetahData\');
+[fn,pn] = uigetfile('*.mat','Choose a current levels file','E:\CheetahData\');
 fin = fullfile(pn,fn);
 load(fin)
 handles.exp.nBlocks = data.nBlocks;
@@ -597,10 +599,11 @@ while ~logical(get(handles.stop_watching,'Value'))
         i = 0;
         % Update the current level to be set
         
-        bn = ceil(cc/nLevels);
+%         bn = ceil(cc/nLevels);
         
-        if (bn ~= bn_prev) || cc==nStim
-            bn_prev = bn;
+        if cc==nStim
+%             if (bn ~= bn_prev) || cc==nStim
+%             bn_prev = bn;
             update_cut_curr(handles,cc==nStim);
         end
         
@@ -644,6 +647,7 @@ xlabel('Current (\muA)')
 ylabel('Abs fEPSP slope (V/s)')
 title('I/O Curve')
 hold on
+grid on
 
 function handles = plot_exp_popspike(handles)
 axes(handles.io_curve_popspike)
@@ -652,13 +656,13 @@ xlabel('Current (\muA)')
 ylabel('Abs fEPSP slope (V/s)')
 title('I/O Curve')
 hold on
-
+grid on
 % --- Executes on button press in load_resp_params.
 function load_resp_params_Callback(hObject, eventdata, handles)
 % hObject    handle to load_resp_params (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[fn,pn] = uigetfile('*.mat','Choose a example slope file','C:\CheetahData\');
+[fn,pn] = uigetfile('*.mat','Choose a example slope file','E:\CheetahData\');
 fin = fullfile(pn,fn);
 x = load(fin);
 fn = fields(x);
@@ -901,7 +905,7 @@ if logical(get(handles.popspike_measure,'Value'))
     example.popspike_data = tempPopspikeData;
     example.avg_popspike_data = compute_averaged_resp_measure_data(tempPopspikeData);
 end
-dn = uigetdir('C:\CheetahData\','Choose a directory to save slope data');
+dn = uigetdir('E:\CheetahData\','Choose a directory to save slope data');
 fin = fullfile(dn,'example_data');
 save(fin,'example')
 
@@ -963,6 +967,7 @@ if logical(get(handles.slope_measure,'Value')) && exist('avgExpSlopeData.mat','f
     set(handles.cut_curr,'String',[num2str(ci) 'uA'])
     axes(handles.io_curve_slope)
     hold on
+    grid on
     if lastStim
         plot([ci ci],ylim,'b--')
         % Plot averaged data
@@ -989,6 +994,7 @@ if logical(get(handles.popspike_measure,'Value')) && exist('avgExpPopspikeData.m
         plot(avgExpPopspikeData(:,1),abs(avgExpPopspikeData(:,2)),'k--')
         hold on
     end
+    grid on
 end
 
 % --- Executes on button press in clear_io_curve.
@@ -1039,7 +1045,7 @@ load tempSlopeData
 axes(handles.io_curve_slope)
 plot(tempSlopeData(:,1),abs(tempSlopeData(:,2)),'ko','markerfacecolor','k')
 hold on
-
+grid on
 
 % --- Executes on button press in clear_exp_data.
 function clear_exp_data_Callback(hObject, eventdata, handles)
@@ -1077,11 +1083,13 @@ if logical(get(handles.slope_measure,'Value'))
     xlabel('Current (\muA)')
     ylabel('Abs fEPSP slope (V/s)')
     title('Slope I/O Curve')
+    grid on
 end
 if logical(get(handles.popspike_measure,'Value'))
     load tempPopspikeData.mat
     td = compute_averaged_resp_measure_data(tempPopspikeData);
     axes(handles.io_curve_popspike)
+    grid on
     hold on
     plot(td(:,1),abs(td(:,2)),'k')
     xlabel('Current (\muA)')
@@ -1102,7 +1110,7 @@ load('expPopspikeData')
 exp.popspike_data = expPopspikeData;
 exp.avg_popspike_data = compute_averaged_resp_measure_data(expPopspikeData);
 
-dn = uigetdir('C:\CheetahData\','Choose a directory to save exp slope data');
+dn = uigetdir('E:\CheetahData\','Choose a directory to save exp slope data');
 fin = fullfile(dn,'exp_slope_data');
 save(fin,'exp')
 
@@ -1129,7 +1137,7 @@ da = expSlopData;
 hold on
 % exp.avg_slope_data = compute_averaged_resp_measure_data(expSlopeData);
 plot(da(:,1),abs(da(:,2)),'k','markerfacecolor','k')
-
+grid on
 
 % --- Executes on button press in plot_exp_slope_avg.
 function plot_exp_slope_avg_Callback(hObject, eventdata, handles)
@@ -1139,6 +1147,7 @@ function plot_exp_slope_avg_Callback(hObject, eventdata, handles)
 load('avgExpSlopeData')
 axes(handles.io_curve_slope)
 hold on
+grid on
 plot(avgExpSlopeData(:,1),abs(avgExpSlopeData(:,2)),'k')
 
 
@@ -1149,22 +1158,24 @@ function load_old_io_data_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if logical(get(handles.slope_measure,'Value'))
-    [fn,pn] = uigetfile('*.mat','Choose a example slope file','C:\CheetahData\');
+    [fn,pn] = uigetfile('*.mat','Choose a example slope file','E:\CheetahData\');
     fin = fullfile(pn,fn);
     x = load(fin);
     fn = fields(x);
     y = x.(fn{1});
-    handles.old.avg_slope_data = y.avg_slope_data;
+    handles.old.avg_slope_data = abs(y.avg_slope_data);
+    handles.old.slope_data = abs(y.slope_data);
     guidata(hObject,handles)
 end
 
 if logical(get(handles.popspike_measure,'Value'))
-    [fn,pn] = uigetfile('*.mat','Choose a example popspike file','C:\CheetahData\');
+    [fn,pn] = uigetfile('*.mat','Choose a example popspike file','E:\CheetahData\');
     fin = fullfile(pn,fn);
     x = load(fin);
     fn = fields(x);
     y = x.(fn{1});
-    handles.old.avg_popspike_data = y.avg_popspike_data;
+    handles.old.avg_popspike_data = abs(y.avg_popspike_data);
+    handles.old.popspike_data = abs(y.popspike_data);
     guidata(hObject,handles)
 end
 
@@ -1179,18 +1190,24 @@ function plot_old_io_data_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 if logical(get(handles.slope_measure,'Value'))
     axes(handles.io_curve_slope)
-    col = rand(1,3);
+    col = [0 0 0];
     x = handles.old.avg_slope_data;
     hold on;
     plot(x(:,1),x(:,2),'O-','color',col)
+    y = handles.old.slope_data;
+    plot(y(:,1),y(:,2),'O','color',col)
+    grid on
 end
 
 if logical(get(handles.popspike_measure,'Value'))
     axes(handles.io_curve_popspike)
     col = rand(1,3);
     x = handles.old.avg_popspike_data;
+    y = handles.old.popspike_data;
     hold on;
     plot(x(:,1),x(:,2),'O-','color',col)
+    plot(y(:,1),y(:,2),'O','color',col)
+    grid on
 end
 
 
@@ -1222,4 +1239,106 @@ function zoom_y_CreateFcn(hObject, eventdata, handles)
 % Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on button press in fit_sigmoid_slope.
+function fit_sigmoid_slope_Callback(hObject, eventdata, handles)
+% hObject    handle to fit_sigmoid_slope (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+[fn,pn] = uigetfile('*.mat','Choose a example slope file','E:\CheetahData\');
+fin = fullfile(pn,fn);
+d = load(fin);
+fn = fieldnames(d);
+fn = fn{:};
+x = d.(fn).slope_data(:,1);
+y = abs(d.(fn).slope_data(:,2));
+% Remove points from fitting
+ec = get(handles.excluded_current,'String');
+if ~isempty(ec)
+    ec = str2double(ec);
+    eind = x~=ec;
+    x = x(eind);
+    y = y(eind);
+end
+% sort data
+[~,ind] = unique(x);
+
+nf = 1/max(y);
+y = y*nf;
+b0 = [max(y) median(diff(y)) x(1)+((x(end)-x(1))/2)];
+
+modelfun = @(b,x) b(1)./(1+exp(-b(2)*(x-b(3))));
+b = nlinfit(x,y,modelfun,b0);
+yhat = modelfun(b,x)/nf;
+axes(handles.io_curve_slope)
+hold all
+plot(x(ind),yhat(ind),'rO-')
+grid on
+
+% Compute 40% cut current
+cv = str2double(get(handles.cut_percent,'String'));
+ma = max(yhat);
+bi = ma*cv/100;
+ci = round(interp1(yhat(ind),x(ind),bi,'linear'));
+set(handles.cut_curr,'String',[num2str(ci) 'uA'])
+plot([ci ci],ylim,'r')
+
+
+% --- Executes on button press in fig_sigmoid_popspike.
+function fig_sigmoid_popspike_Callback(hObject, eventdata, handles)
+% hObject    handle to fig_sigmoid_popspike (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[fn,pn] = uigetfile('*.mat','Choose a example slope file','E:\CheetahData\');
+fin = fullfile(pn,fn);
+d = load(fin);
+fn = fieldnames(d);
+fn = fn{:};
+x = d.(fn).popspike_data(:,1);
+% sort data
+[~,ind] = unique(x);
+y = abs(d.(fn).popspike_data(:,2));
+nf = 1/max(y);
+y = y*nf;
+b0 = [max(y) nanmedian(diff(y)) x(1)+((x(end)-x(1))/2)];
+
+modelfun = @(b,x) b(1)./(1+exp(-b(2)*(x-b(3))));
+b = nlinfit(x,y,modelfun,b0);
+yhat = modelfun(b,x)/nf;
+axes(handles.io_curve_popspike)
+hold all
+plot(x(ind),yhat(ind),'rO-')
+grid on
+% Compute 40% cut current
+cv = str2double(get(handles.cut_percent,'String'));
+ma = max(yhat);
+bi = ma*cv/100;
+ci = round(interp1(yhat(ind),x(ind),bi,'linear'));
+set(handles.cut_curr,'String',[num2str(ci) 'uA'])
+plot([ci ci],ylim,'r')
+
+
+
+function excluded_current_Callback(hObject, eventdata, handles)
+% hObject    handle to excluded_current (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of excluded_current as text
+%        str2double(get(hObject,'String')) returns contents of excluded_current as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function excluded_current_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to excluded_current (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
 end

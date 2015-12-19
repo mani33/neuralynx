@@ -12,9 +12,9 @@ end
 % session
 data.nBlocks = nRep;
 
-d = dir('C:\CheetahData\2015*');
+d = dir('E:\CheetahData\2015*');
 [~,ind] = sort([d.datenum]);
 % file = ['rand_curr_levels_' datestr(now,'yyyy-mm-dd_HH-MM-SS') '.mat'];
 file = 'current_levels_io_uamps.mat';
-dd = fullfile('C:\CheetahData',d(ind(end)).name,file);
+dd = fullfile('E:\CheetahData',d(ind(end)).name,file);
 save(dd,'data')
