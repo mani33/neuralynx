@@ -284,7 +284,17 @@ if logical(get(handles.overlay,'Value'));
 else
     hold off
 end
-plot(handles.temp.t,handles.temp.uV-mean(handles.temp.uV))
+t = handles.temp.t;
+y = handles.temp.uV;
+try
+    % subtract the baseline trace just after the stimulus artifact
+    sel = (t > 1.5) & (t < 2.5);
+    by = mean(y(sel));
+    y = y-by;
+catch
+    y = handles.temp.uV-mean(handles.temp.uV);
+end
+plot(t,y)
 xlabel('Time (ms)')
 ylabel('uV')
 title('Raw data')

@@ -311,8 +311,19 @@ tvec = t1 + (0:nsamples)*T*1e6; % micro sec
 t = (tvec - handles.temp.event_ts)/1000; % ms
 
 segSel = t >= (-handles.pre) & t <= handles.post;
-handles.temp.uV = d(segSel);
-handles.temp.t = t(segSel);
+y = d(segSel);
+t = t(segSel);
+try
+    % subtract the baseline trace just after the stimulus artifact
+    sel = (t > 1.5) & (t < 2.5);
+    by = mean(y(sel));
+    y = y-by;
+catch
+    y = handles.temp.uV-mean(handles.temp.uV);
+end
+
+handles.temp.uV = y;
+handles.temp.t = t;
 plot_raw_trace(handles)
 plot_trace_for_resp_measure(handles)
 
@@ -327,7 +338,13 @@ if logical(get(handles.overlay,'Value'));
 else
     hold off
 end
-plot(handles.temp.t,handles.temp.uV-mean(handles.temp.uV))
+
+t = handles.temp.t;
+y = handles.temp.uV;
+
+plot(t,y)
+
+% plot(handles.temp.t,handles.temp.uV-mean(handles.temp.uV))
 xlabel('Time (ms)')
 ylabel('uV')
 title('Raw data')
@@ -338,8 +355,9 @@ xlim([-2 50])
 function plot_trace_for_resp_measure(handles)
 axes(handles.inst_response)
 cla
-y = handles.temp.uV;
 t = handles.temp.t;
+y = handles.temp.uV;
+
 yso = mconv(y,getGausswin(0.5,1000*1/handles.Fs));
 plot(t,y,'b')
 hold all
@@ -767,12 +785,6 @@ t = handles.temp.t;
 % yso = mconv(y,getGausswin(0.5,1000*1/handles.Fs));
 title('Slope Measurement')
 
-% dy = diff(yso);
-% mInd = t>0.5 & t < min(100,t(end)); % ms
-% dy = max(yso(mInd))*dy/max(dy(mInd));
-% plot(t(2:end),dy,'r')
-% xlim([-2 45])
-% xlim([1 500])
 % Ginput the start and end points to calculate slope
 [tb,~] = ginput(1);
 % Extract the trace between the bounds and fit a linear model
@@ -1268,7 +1280,7 @@ end
 
 nf = 1/max(y);
 y = y*nf;
-b0 = [max(y) median(diff(y)) x(1)+((x(end)-x(1))/2)];
+b0 = [max(y) median(diff(y)) min(x)+((max(x)-min(x))/2)];
 
 modelfun = @(b,x) b(1)./(1+exp(-b(2)*(x-b(3))));
 b = nlinfit(x,y,modelfun,b0);
