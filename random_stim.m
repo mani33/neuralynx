@@ -12,9 +12,11 @@ end
 % session
 data.nBlocks = nRep;
 
-d = dir('E:\CheetahData\2015*');
-[~,ind] = sort([d.datenum]);
+% d = dir('E:\CheetahData\201*');
+% [~,ind] = sort([d.datenum]);
 % file = ['rand_curr_levels_' datestr(now,'yyyy-mm-dd_HH-MM-SS') '.mat'];
+
+dn = uigetdir('E:\CheetahData\','Choose a directory to save current levels data');
 file = 'current_levels_io_uamps.mat';
-dd = fullfile('E:\CheetahData',d(ind(end)).name,file);
-save(dd,'data')
+fin = fullfile(dn,file);
+save(fin,'data')

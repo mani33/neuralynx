@@ -22,7 +22,7 @@ function varargout = iocurve_offline(varargin)
 
 % Edit the above text to modify the response to help iocurve_offline
 
-% Last Modified by GUIDE v2.5 20-Dec-2015 18:49:33
+% Last Modified by GUIDE v2.5 22-Dec-2015 21:29:37
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -55,7 +55,7 @@ function iocurve_offline_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.slope_win = 1; %  ms
 % Choose default command line output for iocurve_offline
 handles.output = hObject;
-
+set(handles.cut_percent,'String','40')
 
 
 expSlopeDataManual = [];
@@ -89,12 +89,15 @@ function load_traces_Callback(hObject, eventdata, handles)
 % hObject    handle to load_traces (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.dataDir = uigetdir('Y:\ephys\raw');
-d = dir(fullfile(handles.dataDir,'*.mat'));
-handles.filenames = {d.name};
-set(handles.file_list,'String',{d.name}')
-guidata(hObject, handles)
-
+% dd = uigetdir('Y:\ephys\raw');
+dd = uigetdir('E:\CheetahData\2015-12-18_14-54-14');
+if dd~=0
+    handles.dataDir = dd;    
+    d = dir(fullfile(handles.dataDir,'*.mat'));
+    handles.filenames = {d.name};
+    set(handles.file_list,'String',{d.name}')
+    guidata(hObject, handles)
+end
 
 
 
@@ -121,6 +124,8 @@ t0 = data.t1_ms;
 dt = 1000*(1/data.Fs);
 handles.temp.uV = data.uV-mean(data.uV);
 handles.temp.t = t0 + (0:length(data.uV)-1)*dt;
+handles.Fs = data.Fs;
+handles.curr = data.curr_uA;
 plot(handles.temp.t,(handles.temp.uV),'k')
 box off
 axis tight
@@ -131,12 +136,13 @@ plot(handles.temp.t,(handles.temp.uV),'b')
 box off
 axis tight
 if isfield(handles,'axis_limit')
+    if get(handles.keep_axis_limits,'Value')==1
 axis(handles.axis_limit)
+    end
 end
 
-[curr,bn] = compute_condition(handles);
+curr = handles.curr;
 set(handles.current_set,'String',curr)
-set(handles.block_num,'String',bn)
 guidata(hObject,handles)
 
 
@@ -161,15 +167,12 @@ function prev_Callback(hObject, eventdata, handles)
 
 fn = get(handles.file_list,'Value');
 fn = fn - 1;
-if fn < 1
-    fn = 1;
+if fn >=1
+    set(handles.file_list,'Value',fn)
+    handles = update_raw_trace(hObject,handles,fn);
+    update_resp_measure(hObject,eventdata,handles)
+    guidata(hObject,handles)
 end
-set(handles.file_list,'Value',fn)
-
-handles = update_raw_trace(hObject,handles,fn);
-update_resp_measure(hObject,eventdata,handles)
-guidata(hObject,handles)
-
 
 % --- Executes on button press in next.
 function next_Callback(hObject, eventdata, handles)
@@ -180,13 +183,12 @@ function next_Callback(hObject, eventdata, handles)
 nF = length(handles.filenames);
 fn = get(handles.file_list,'Value');
 fn = fn + 1;
-if fn > nF
-    fn = nF;
+if fn <= nF
+    set(handles.file_list,'Value',fn)
+    handles = update_raw_trace(hObject,handles,fn);
+    update_resp_measure(hObject,eventdata,handles)
+    guidata(hObject,handles)
 end
-set(handles.file_list,'Value',fn)
-handles = update_raw_trace(hObject,handles,fn);
-update_resp_measure(hObject,eventdata,handles)
-guidata(hObject,handles)
 
 
 
@@ -198,7 +200,9 @@ t = handles.temp.t;
 plot(t,y,'b')
 hold all
 if isfield(handles,'axis_limit')
+if get(handles.keep_axis_limits,'Value')==1
 axis(handles.axis_limit)
+    end
 end
 
 if logical(get(handles.slope_measure,'Value'))
@@ -215,7 +219,37 @@ function save_data_Callback(hObject, eventdata, handles)
 % hObject    handle to save_data (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+if logical(get(handles.slope_measure,'Value'))
+    load('expSlopeDataManual')
+    exp.slope_data = expSlopeDataManual;
+    exp.avg_slope_data = compute_averaged_resp_measure_data(expSlopeDataManual);
+end
+if logical(get(handles.popspike_measure,'Value'))
+    load('expPopspikeDataManual')
+    exp.popspike_data = expPopspikeDataManual;
+    exp.avg_popspike_data = compute_averaged_resp_measure_data(expPopspikeDataManual);
+end
+dn = uigetdir('E:\CheetahData\','Choose a directory to save exp slope data');
+fin = fullfile(dn,'exp_resp_data_manual');
+save(fin,'exp')
 
+function data = compute_averaged_resp_measure_data(data)
+d = data;
+if isempty(d)
+    return
+end
+curr = d(:,1);
+ncol = size(d,2);
+uc = unique(curr);
+nu = length(uc);
+data = nan(nu,ncol);
+for i = 1:nu
+    c = uc(i);
+    data(i,1) = c;
+    for nc = 2:ncol
+        data(i,nc) = nanmean(d(curr==c,nc));
+    end
+end
 
 % --- Executes on button press in slope_measure.
 function slope_measure_Callback(hObject, eventdata, handles)
@@ -250,19 +284,6 @@ function quantify_resp_Callback(hObject, eventdata, handles)
 
 update_resp_measure(hObject,eventdata,handles)
 
-% axes(handles.inst_response)
-% cla
-% y = handles.temp.uV;
-% t = handles.temp.t;
-% plot(t,y,'b')
-% hold all
-% 
-% if logical(get(handles.slope_measure,'Value'))
-%     compute_example_slope(hObject,eventdata,handles);
-% end
-% if logical(get(handles.popspike_measure,'Value'))
-%     compute_example_popspike(hObject,eventdata,handles);
-% end
 
 function set_xlim
 xlim([-1 50])
@@ -270,6 +291,7 @@ xlim([-1 50])
 function compute_example_popspike(hObject,eventsdata,handles)
 y = handles.temp.uV;
 tmsec = handles.temp.t;
+curr = handles.curr;
 axes(handles.inst_response)
 title('PopSpike Measurement')
 s = get(get(handles.popspike_measure_type,'SelectedObject'),'String');
@@ -277,6 +299,12 @@ np = str2double(s(1));
 if np == 2
     [bounds,~] = ginput(2);
     [h,tt,yy,ypi] = get_popspike_height(tmsec,y,bounds,'auto',true);
+elseif np == 3
+    [x,y] = ginput(3);
+    bnd = [x'; y'];
+    bounds = x';
+    [h,tt,~,ypi] = get_popspike_height(tmsec,y,bnd,'auto',false);
+    yy = y';
 elseif np==4
     [bounds,~] = ginput(4);
     [h,tt,yy,ypi] = get_popspike_height(tmsec,y,bounds,'auto',false);
@@ -287,14 +315,21 @@ plot(tt(2),ypi,'m*')
 plot(tt(2),yy(2),'m*')
 plot(tt([1 3]),yy([1 3]),'k-')
 plot([tt(2) tt(2)],[yy(2) ypi],'m','linewidth',2)
-set_xlim;
+
 xlabel('Time(ms)')
 title('Instantaneous Resp Measurement')
 set(gca,'YTickLabel','')
 box off
 hold off
+box off
+axis tight
+if isfield(handles,'axis_limit')
+if get(handles.keep_axis_limits,'Value')==1
+axis(handles.axis_limit)
+    end
+end
 % Save data
-curr = compute_condition(handles);
+
 load('expPopspikeDataManual')
 fileIndex = get(handles.file_list,'Value');
 expPopspikeDataManual(fileIndex,:) = [curr h bounds(:)'];
@@ -337,6 +372,18 @@ y = handles.temp.uV;
 t = handles.temp.t;
 title('Slope Measurement')
 
+
+box off
+yso = mconv(y,getGausswin(0.5,1000*1/handles.Fs));
+% plot(t,y,'b')
+hold all
+plot(t,yso,'k')
+dy = diff(yso);
+mInd = t>0.5 & t < min(100,t(end)); % ms
+dy = max(yso(mInd))*dy/max(dy(mInd));
+plot(t(2:end),dy,'r')
+
+
 % Ginput the start and end points to calculate slope
 [tb,~] = ginput(1);
 % Extract the trace between the bounds and fit a linear model
@@ -349,14 +396,23 @@ X = [ts*1e-3,ones(size(ts))];
 B = regress(ys,X);
 yi = X*B;
 plot(X(:,1)*1e3,yi,'m.')
-hold off
+
 xlabel('Time(ms)')
 ylabel('Slope (V/s)')
 
+
+
+hold off
 box off
-set_xlim
+axis tight
+if isfield(handles,'axis_limit')
+if get(handles.keep_axis_limits,'Value')==1
+axis(handles.axis_limit)
+    end
+end
+
 % Save data
-curr = compute_condition(handles);
+curr = handles.curr;
 load('expSlopeDataManual')
 sv = B(1);
 if logical(get(handles.flip_slope_sign,'Value'))
@@ -390,7 +446,43 @@ function pushbutton11_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton11 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+[fn,pn] = uigetfile('*.mat','Choose a example slope file','E:\CheetahData\');
+fin = fullfile(pn,fn);
+d = load(fin);
+fn = fieldnames(d);
+fn = fn{:};
+x = d.(fn).slope_data(:,1);
+y = abs(d.(fn).slope_data(:,2));
+% Remove points from fitting
+ec = get(handles.excluded_current,'String');
+if ~isempty(ec)
+    ec = str2double(ec);
+    eind = x~=ec;
+    x = x(eind);
+    y = y(eind);
+end
+% sort data
+[~,ind] = unique(x);
 
+nf = 1/max(y);
+y = y*nf;
+b0 = [max(y) median(diff(y)) min(x)+((max(x)-min(x))/2)];
+
+modelfun = @(b,x) b(1)./(1+exp(-b(2)*(x-b(3))));
+b = nlinfit(x,y,modelfun,b0);
+yhat = modelfun(b,x)/nf;
+axes(handles.io_curve_slope)
+hold all
+plot(x(ind),yhat(ind),'rO-')
+grid on
+
+% Compute 40% cut current
+cv = str2double(get(handles.cut_percent,'String'));
+ma = max(yhat);
+bi = ma*cv/100;
+ci = round(interp1(yhat(ind),x(ind),bi,'linear'));
+set(handles.cut_curr,'String',[num2str(ci) 'uA'])
+plot([ci ci],ylim,'r')
 
 % --- Executes on button press in pushbutton12.
 function pushbutton12_Callback(hObject, eventdata, handles)
@@ -398,20 +490,47 @@ function pushbutton12_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+[fn,pn] = uigetfile('*.mat','Choose a example slope file','E:\CheetahData\');
+fin = fullfile(pn,fn);
+d = load(fin);
+fn = fieldnames(d);
+fn = fn{:};
+x = d.(fn).popspike_data(:,1);
+% sort data
+[~,ind] = unique(x);
+y = abs(d.(fn).popspike_data(:,2));
+nf = 1/max(y);
+y = y*nf;
+b0 = [max(y) nanmedian(diff(y)) x(1)+((x(end)-x(1))/2)];
+
+modelfun = @(b,x) b(1)./(1+exp(-b(2)*(x-b(3))));
+b = nlinfit(x,y,modelfun,b0);
+yhat = modelfun(b,x)/nf;
+axes(handles.io_curve_popspike)
+hold all
+plot(x(ind),yhat(ind),'rO-')
+grid on
+% Compute 40% cut current
+cv = str2double(get(handles.cut_percent,'String'));
+ma = max(yhat);
+bi = ma*cv/100;
+ci = round(interp1(yhat(ind),x(ind),bi,'linear'));
+set(handles.cut_curr,'String',[num2str(ci) 'uA'])
+plot([ci ci],ylim,'r')
 
 
-function edit1_Callback(hObject, eventdata, handles)
-% hObject    handle to edit1 (see GCBO)
+function excluded_current_Callback(hObject, eventdata, handles)
+% hObject    handle to excluded_current (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit1 as text
-%        str2double(get(hObject,'String')) returns contents of edit1 as a double
+% Hints: get(hObject,'String') returns contents of excluded_current as text
+%        str2double(get(hObject,'String')) returns contents of excluded_current as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit1 (see GCBO)
+function excluded_current_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to excluded_current (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -422,33 +541,24 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in load_curr_levels_file.
-function load_curr_levels_file_Callback(hObject, eventdata, handles)
-% hObject    handle to load_curr_levels_file (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% [fn,pn] = uigetfile('*.mat','Choose a current levels file','E:\CheetahData\');
-[fn,pn] = uigetfile('*.mat','Choose a current levels file','Y:\ephys\raw\2015-12-18_14-07-44');
-fin = fullfile(pn,fn);
-load(fin)
-handles.exp.nBlocks = data.nBlocks;
-handles.exp.current_levels = data.current_levels;
-b1 = data.current_levels{1};
-set(handles.current_set,'String',[num2str(b1(1)) 'uA'])
-set(handles.block_num,'String','1')
-guidata(hObject,handles)
+% % --- Executes on button press in load_curr_levels_file.
+% function load_curr_levels_file_Callback(hObject, eventdata, handles)
+% % hObject    handle to load_curr_levels_file (see GCBO)
+% % eventdata  reserved - to be defined in a future version of MATLAB
+% % handles    structure with handles and user data (see GUIDATA)
+% % [fn,pn] = uigetfile('*.mat','Choose a current levels file','E:\CheetahData\');
+% [fn,pn] = uigetfile('*.mat','Choose a current levels file','E:\CheetahData\2015-12-18_14-07-44');
+% fin = fullfile(pn,fn);
+% load(fin)
+% handles.exp.nBlocks = data.nBlocks;
+% cl = [data.current_levels{:}];
+% handles.exp.current_levels = cl(:);
+% b1 = handles.exp.current_levels(1);
+% set(handles.current_set,'String',[num2str(b1) 'uA'])
+% set(handles.block_num,'String','1')
+% guidata(hObject,handles)
 
 
-function [curr, blockNum] = compute_condition(handles)
-curr = NaN;
-blockNum = NaN;
-if isfield(handles,'exp')
-    v = get(handles.file_list,'Value');
-    cv = [handles.exp.current_levels{:}];
-    cv = cv(:);
-    curr = cv(v);
-    blockNum = ceil(v/handles.exp.nBlocks);
-end
 
 % --- Executes on button press in multi_color.
 function multi_color_Callback(hObject, eventdata, handles)
@@ -457,7 +567,8 @@ function multi_color_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of multi_color
-
+handles.multicolor = logical(get(hObject,'Value'));
+guidata(hObject,handles);
 
 % --- Executes on button press in overlay.
 function overlay_Callback(hObject, eventdata, handles)
@@ -466,7 +577,8 @@ function overlay_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of overlay
-
+handles.overlay_plots = logical(get(hObject,'Value'));
+guidata(hObject,handles)
 
 % --- Executes on button press in flip_slope_sign.
 function flip_slope_sign_Callback(hObject, eventdata, handles)
@@ -484,15 +596,79 @@ function keep_axis_limits_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of keep_axis_limits
+if get(hObject,'Value')==1
 axes(gca)
 handles.axis_limit = axis;
 guidata(hObject,handles)
+end
 
 
-% --- Executes on button press in iocurve.
-function iocurve_Callback(hObject, eventdata, handles)
-% hObject    handle to iocurve (see GCBO)
+
+
+% --- Executes on button press in clear_traces.
+function clear_traces_Callback(hObject, eventdata, handles)
+% hObject    handle to clear_traces (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+axes(handles.inst_response)
+cla
+axes(handles.raw_trace)
+cla
+
+
+
+function cut_percent_Callback(hObject, eventdata, handles)
+% hObject    handle to cut_percent (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of iocurve
+% Hints: get(hObject,'String') returns contents of cut_percent as text
+%        str2double(get(hObject,'String')) returns contents of cut_percent as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function cut_percent_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cut_percent (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in clearRespData.
+function clearRespData_Callback(hObject, eventdata, handles)
+% hObject    handle to clearRespData (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+clearResponseData
+
+function clearResponseData
+
+if exist('expSlopeDataManual.mat','file')
+    load('expSlopeDataManual.mat')
+    expSlopeDataManual = [];
+    save('expSlopeDataManual','expSlopeDataManual')
+end
+
+if exist('avgExpSlopeDataManual.mat','file')
+    load('avgExpSlopeDataManual')
+    avgExpSlopeDataManual = [];
+    save('avgExpSlopeDataManual','avgExpSlopeDataManual')
+end
+
+if exist('expPopSpikeDataManual.mat','file')
+    load('expPopSpikeDataManual.mat')
+    expPopSpikeDataManual = [];
+    save('expPopSpikeDataManual','expPopSpikeDataManual')
+end
+
+if exist('avgExpSlopeDataManual.mat','file')
+    load('avgExpSlopeDataManual')
+    avgExpSlopeDataManual = [];
+    save('avgExpSlopeDataManual','avgExpSlopeDataManual')
+end
+

@@ -22,7 +22,7 @@ function varargout = ltp_online(varargin)
 
 % Edit the above text to modify the response to help ltp_online
 
-% Last Modified by GUIDE v2.5 08-Dec-2015 09:47:09
+% Last Modified by GUIDE v2.5 28-Dec-2015 12:13:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -62,8 +62,11 @@ set(handles.postEventTime,'String',handles.post_event_time);
 set(handles.preEventTime,'String',handles.pre_event_time);
 % Update handles structure
 % Default current levels to be tested
-dc = {'2.5','5','10','15','20','25','30','35','40','45','50','55','60','65','70','75','80','85',...
-    '90','95','100','105','110','115','120','125','130','135','140','145',...
+dc = {'1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23',...
+    '24','25','26','27','28','29','30','31','32','33','34','35','36','37','38','39','40','41','42','43','44','45',...
+    '46','47','48','49','50','51','52','53','54','55','56','57','58','59','60','61','62','63','64','65','66','67',...
+    '68','69','70','71','72','73','74','75','76','77','78','79','80','81','82','83','84','85','86','87','88','89',...
+    '90','91','92','93','94','95','96','97','98','99','100','105','110','115','120','125','130','135','140','145',...
     '150','155','160','165','170','175','180','185','190','195','200','205','210','215','220','225','250','275','300','350','400'};
 set(handles.trial_curr,'String',dc);
 handles.linehandles = [];
@@ -266,7 +269,8 @@ if logical(get(handles.save_traces,'Value'))
     fn = fullfile(dataPath,fnc);
     data.t1_ms = handles.temp.t(1); % ms
     data.uV = handles.temp.uV; % 
-    data.event_ts_us = handles.temp.event_ts; 
+    data.event_ts_us = handles.temp.event_ts;
+    data.curr_uA = handles.exp.curr;
     data.chan = handles.objectToRetrieve;%#ok
     % Save data
     save(fn,'data')
@@ -412,7 +416,7 @@ handles.n_ind_pulses = 0;
 handles.n_post_pulses = 0;
 cc = 0;
 ddd = str2double(get(handles.trial_curr,'String'));
-v = logical(get(handles.trial_curr,'Value'));
+v = double(get(handles.trial_curr,'Value'));
 handles.exp.curr = ddd(v);
 handles.exp.slope = [];
 handles.exp.popspike = [];
@@ -531,9 +535,9 @@ y = abs(handles.exp.slope(end));
 col = get_plot_color(handles);
 toff = str2double(get(handles.time_offset,'String'));
 t = toff+(handles.time(end)-handles.time(1))/60;
-plot(t,y,[col 'O'],'markerfacecolor',col);
+plot(t,y,'O','color',col,'markerfacecolor',col);
 xlabel('Time (min)')
-% ylabel('Abs fEPSP slope (V/s)')
+% ylabel('Abs fEPSP slope (violet/s)')
 title('Slope LTP')
 hold on
 box off
@@ -543,9 +547,9 @@ y = abs(handles.exp.popspike(end));
 col = get_plot_color(handles);
 toff = str2double(get(handles.time_offset,'String'));
 t = toff+(handles.time(end)-handles.time(1))/60;
-plot(t,y,[col 'O'],'markerfacecolor',col);
+plot(t,y,'O','color',col,'markerfacecolor',col);
 xlabel('Time (min)')
-% ylabel('Abs fEPSP slope (V/s)')
+% ylabel('Abs fEPSP slope (violet/s)')
 title('PopSpike LTP')
 hold on
 box off
@@ -672,7 +676,7 @@ ex_curr = sd(:,1);
 lat = sd(ex_ind,3);
 
 % Add custom offset to the latency
-offset = str2double(get(handles.slope_latency_offset,'String'))
+offset = str2double(get(handles.slope_latency_offset,'String'));
 lat = lat + offset;
 sind = find(t > lat & t < (lat + handles.slope_win));
 ts = t(sind);
@@ -685,12 +689,17 @@ plot(X(:,1)*1e3,yi,'m.')
 box off
 hold off
 set(gca,'YTickLabel','')
-handles.exp.slope(handles.exp.cc) = B(1);
+if logical(get(handles.flip_slope_sign,'Value'))
+    slope = -B(1);
+else
+    slope = B(1);
+end
+handles.exp.slope(handles.exp.cc) = slope;
 % Save data
 title('Slope')
 
 load('ltpSlopeData')
-ltpSlopeData(end+1,:) = [handles.time(end) B(1)];
+ltpSlopeData(end+1,:) = [handles.time(end) slope];
 save('ltpSlopeData','ltpSlopeData')
 % avgLtpSlopeData = compute_averaged_slope_data(ltpSlopeData);
 % save('avgLtpSlopeData','avgLtpSlopeData')
@@ -962,7 +971,7 @@ if ~isempty(d)
     hold on
     toff = str2double(get(handles.time_offset,'String'));
     t = toff+(d(:,1)-d(1,1))/60;
-    plot(t,abs(d(:,2)),[col 'O'],'markerfacecolor',col)
+    plot(t,abs(d(:,2)),'O','color',col,'markerfacecolor',col)
 end
 
 d = handles.old_popspike_data;
@@ -972,13 +981,23 @@ if ~isempty(d)
     hold on
     toff = str2double(get(handles.time_offset,'String'));
     t = toff+(d(:,1)-d(1,1))/60;
-    plot(t,abs(d(:,2)),[col 'O'],'markerfacecolor',col)
+    plot(t,abs(d(:,2)),'O','color',col,'markerfacecolor',col)
 end
 function col = get_plot_color(handles)
 ob = get(handles.color_selected,'SelectedObject');
 so = get(ob,'Tag');
-col = so(1);
-
+cmatrix = {'red',[1 0 0]; 
+            'green',[0 0.8 0];
+            'blue',[0 0 1];
+            'magenta',[1 0 1];
+            'cyan',[0 1 1];
+            'black',[0 0 0];
+            'gray',[0.5 0.5 0.5];
+            'violet',[.367 .234 .598];
+            'skyblue',[.172 .481 .711]};
+ind = strcmp(cmatrix(:,1),so);
+col = cmatrix{ind,2};
+            
 function ep = get_data_epoch(handles)
 ob = get(handles.data_epoch,'SelectedObject');
 ep = get(ob,'String');
@@ -1174,7 +1193,7 @@ function plot_avg_trace_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 axes(handles.avg_raw_trace)
 hold on
-plot(handles.avg.t,handles.avg.y,get_plot_color(handles),'linewidth',2)
+plot(handles.avg.t,handles.avg.y,'color',get_plot_color(handles),'linewidth',2)
 set_xlim;
 % --- Executes on button press in clear_avg_traces.
 function clear_avg_traces_Callback(hObject, eventdata, handles)
@@ -1311,3 +1330,12 @@ function new_example_params_Callback(hObject, eventdata, handles)
 % hObject    handle to new_example_params (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in flip_slope_sign.
+function flip_slope_sign_Callback(hObject, eventdata, handles)
+% hObject    handle to flip_slope_sign (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of flip_slope_sign

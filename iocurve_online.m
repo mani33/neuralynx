@@ -22,7 +22,7 @@ function varargout = iocurve_online(varargin)
 
 % Edit the above text to modify the response to help iocurve_online
 
-% Last Modified by GUIDE v2.5 16-Dec-2015 11:57:57
+% Last Modified by GUIDE v2.5 04-Jan-2016 15:32:00
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -76,6 +76,7 @@ tempSlopeData = [];
 expSlopeData = [];
 expPopspikeData = [];
 tempPopspikeData = [];
+set(handles.ttl,'String','128')
 save('tempSlopeData','tempSlopeData')
 save('expSlopeData','expSlopeData')
 save('expPopspikeData','expPopspikeData')
@@ -110,6 +111,10 @@ handles.cheetahObjects = cheetahObjects;
 handles.cheetahTypes = cheetahTypes;
 handles.sel_data = {};
 handles.sel_time = {};
+
+[~,dd] =  NlxSendCommand('-GetDataDirectory ');
+dd = strtrim(strrep( dd{:},'"',''));
+handles.cheetah_data_dir = dd;
 
 guidata(hObject,handles)
 
@@ -262,7 +267,8 @@ while ~logical(get(handles.stop_watching,'Value'))
         handles.Fs = double(Fs(1));
     end
     % Event detected, collect more data
-    f = ttlValueArray == 128;
+%     f = ttlValueArray == 128;
+    f = ttlValueArray == str2double(get(handles.ttl,'String'));
     if any(f)
         handles.temp.event_detected = true;
         handles.temp.event_ts = double(event_ts(f));
@@ -327,6 +333,31 @@ handles.temp.t = t;
 plot_raw_trace(handles)
 plot_trace_for_resp_measure(handles)
 
+% save traces if asked for
+if logical(get(handles.save_traces,'Value')) && logical(get(handles.run_io_exp,'Value'))
+    % Get some metadata
+    data = struct;
+%     obj = handles.objectToRetrieve;
+%     [~,data.high_cut] =  NlxSendCommand('-GetAnalogHighCutFrequency t1c1');
+%     [~,data.low_cut] =  NlxSendCommand(['-GetAnalogLowCutFrequency ' obj]);
+    data.Fs = handles.Fs;
+    dataPath = fullfile(handles.cheetah_data_dir,'EventTrigTraces');
+    if ~exist(dataPath,'dir')
+        mkdir(dataPath)
+    end
+    % create file name based on current time
+    ctime = round(clock);
+    fnc = sprintf('h%02dm%02ds%02d.mat',ctime(4),ctime(5),ctime(6));
+    fn = fullfile(dataPath,fnc);
+    data.t1_ms = handles.temp.t(1); % ms
+    data.uV = handles.temp.uV; % 
+    data.event_ts_us = handles.temp.event_ts; 
+    data.chan = handles.objectToRetrieve;
+    data.curr_uA = handles.exp.curr(end);%#ok
+    % Save data
+    save(fn,'data')
+end
+
 function plot_raw_trace(handles)
 axes(handles.raw_trace)
 if logical(get(handles.overlay,'Value'));
@@ -373,7 +404,7 @@ axes(handles.io_curve_slope)
 % Get current level used
 load tempSlopeData
 d = tempSlopeData;
-slope = abs(d(end,2));
+slope = d(end,2);
 plot(d(end,1),slope,'kO','markerfacecolor','k')
 hold on
 grid on
@@ -583,7 +614,8 @@ while ~logical(get(handles.stop_watching,'Value'))
         handles.Fs = double(Fs(1));
     end
     % Event detected, collect more data
-    f = ttlValueArray == 128;
+%     f = ttlValueArray == 128;
+    f = ttlValueArray == str2double(get(handles.ttl,'String'));
     if any(f)
         handles.temp.event_detected = true;
         handles.temp.event_ts = double(event_ts(f));
@@ -660,7 +692,7 @@ set(handles.run_io_exp,'Value',false)
 
 function handles = plot_exp_slope(handles)
 axes(handles.io_curve_slope)
-plot(handles.exp.curr(end),abs(handles.exp.slope(end)),'kO','markerfacecolor','k')
+plot(handles.exp.curr(end),handles.exp.slope(end),'kO','markerfacecolor','k')
 xlabel('Current (\muA)')
 ylabel('Abs fEPSP slope (V/s)')
 title('I/O Curve')
@@ -726,14 +758,7 @@ function quantify_resp_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 axes(handles.inst_response)
-% cla
-% y = handles.temp.uV;
-% t = handles.temp.t;
-% yso = mconv(y,getGausswin(0.25,1000*1/handles.Fs));
-% plot(t,y,'b')
-% hold all
-% plot(t,yso,'k')
-% set(gca,'YTickLabel','')
+
 if logical(get(handles.slope_measure,'Value'))
     compute_example_slope(hObject,eventdata,handles);
 end
@@ -757,7 +782,6 @@ elseif np==4
 end
 axes(handles.inst_response)
 hold on
-tt = tt;
 plot(tt(2),ypi,'m*')
 plot(tt(2),yy(2),'m*')
 plot(tt([1 3]),yy([1 3]),'k-')
@@ -803,12 +827,21 @@ ylabel('Slope (V/s)')
 
 box off
 xlim([-2 45])
+
+% Flip sign of slope if asked for
+if logical(get(handles.flip_slope_sign,'Value'))
+    slope = -B(1);
+else
+    slope = B(1);
+end
+
 % Save data
 contents = cellstr(get(handles.trial_curr,'String'));
 curr =  str2double(contents{get(handles.trial_curr,'Value')});
-handles.temp.curr_slope_start_time = [curr B(1) tb];
+handles.temp.curr_slope_start_time = [curr slope tb];
 load('tempSlopeData')
-tempSlopeData(end+1,:) = [curr B(1) tb];
+
+tempSlopeData(end+1,:) = [curr slope tb];
 save('tempSlopeData','tempSlopeData')
 
 handles = add_slope_datapoint_to_io_plot(handles);
@@ -844,10 +877,20 @@ box off
 hold off
 set(gca,'YTicklabel','')
 title('Resp Measurement')
-handles.exp.slope(handles.exp.cc) = B(1);
+
+% Flip sign of slope if asked for
+if logical(get(handles.flip_slope_sign,'Value'))
+    slope = -B(1);
+else
+    slope = B(1);
+end
+
+handles.exp.slope(handles.exp.cc) = slope;
 % Save data
 load('expSlopeData')
-expSlopeData(end+1,:) = [curr B(1)];
+
+
+expSlopeData(end+1,:) = [curr slope];
 save('expSlopeData','expSlopeData')
 avgExpSlopeData = compute_averaged_resp_measure_data(expSlopeData);
 save('avgExpSlopeData','avgExpSlopeData')
@@ -930,7 +973,7 @@ function compute_cut_curr_Callback(hObject, eventdata, handles)
 if exist('expSlopeData.mat','file')
     load expSlopeData
     if ~isempty(expSlopeData)
-    plot(expSlopeData(:,1),abs(expSlopeData(:,2)),'kO','markerfacecolor','k')
+    plot(expSlopeData(:,1),expSlopeData(:,2),'kO','markerfacecolor','k')
     hold on
     end
 end
@@ -970,7 +1013,7 @@ cv = str2double(get(handles.cut_percent,'String'));
 
 if logical(get(handles.slope_measure,'Value')) && exist('avgExpSlopeData.mat','file')
     load('avgExpSlopeData')
-    sl = abs(avgExpSlopeData(:,2));
+    sl = avgExpSlopeData(:,2);
 %     mi = min(sl);
     ma = max(sl);
 %     bi = mi+(ma-mi)*cv/100;
@@ -983,7 +1026,7 @@ if logical(get(handles.slope_measure,'Value')) && exist('avgExpSlopeData.mat','f
     if lastStim
         plot([ci ci],ylim,'b--')
         % Plot averaged data
-        plot(avgExpSlopeData(:,1),abs(avgExpSlopeData(:,2)),'k--')
+        plot(avgExpSlopeData(:,1),avgExpSlopeData(:,2),'k--')
         hold on
     end
 end
@@ -993,9 +1036,10 @@ if logical(get(handles.popspike_measure,'Value')) && exist('avgExpPopspikeData.m
     cv = str2double(get(handles.cut_percent,'String'));
     load('avgExpPopspikeData')
     sl = abs(avgExpPopspikeData(:,2));
-    mi = min(sl);
+%     mi = min(sl);
     ma = max(sl);
-    bi = mi+(ma-mi)*cv/100;
+%     bi = mi+(ma-mi)*cv/100;
+    bi = ma*cv/100;
     ci = round(interp1(sl,avgExpPopspikeData(:,1),bi,'linear'));
     set(handles.cut_curr,'String',[num2str(ci) 'uA'])
     axes(handles.io_curve_popspike)
@@ -1055,7 +1099,7 @@ function update_example_io_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 load tempSlopeData
 axes(handles.io_curve_slope)
-plot(tempSlopeData(:,1),abs(tempSlopeData(:,2)),'ko','markerfacecolor','k')
+plot(tempSlopeData(:,1),tempSlopeData(:,2),'ko','markerfacecolor','k')
 hold on
 grid on
 
@@ -1091,7 +1135,7 @@ if logical(get(handles.slope_measure,'Value'))
     td = compute_averaged_resp_measure_data(tempSlopeData);
     axes(handles.io_curve_slope)
     hold on
-    plot(td(:,1),abs(td(:,2)),'k')
+    plot(td(:,1),td(:,2),'k')
     xlabel('Current (\muA)')
     ylabel('Abs fEPSP slope (V/s)')
     title('Slope I/O Curve')
@@ -1147,8 +1191,7 @@ axes(handles.io_curve_slope)
 load('expSlopeData')
 da = expSlopData;
 hold on
-% exp.avg_slope_data = compute_averaged_resp_measure_data(expSlopeData);
-plot(da(:,1),abs(da(:,2)),'k','markerfacecolor','k')
+plot(da(:,1),da(:,2),'k','markerfacecolor','k')
 grid on
 
 % --- Executes on button press in plot_exp_slope_avg.
@@ -1160,7 +1203,7 @@ load('avgExpSlopeData')
 axes(handles.io_curve_slope)
 hold on
 grid on
-plot(avgExpSlopeData(:,1),abs(avgExpSlopeData(:,2)),'k')
+plot(avgExpSlopeData(:,1),avgExpSlopeData(:,2),'k')
 
 
 % --- Executes on button press in load_old_io_data.
@@ -1175,8 +1218,8 @@ if logical(get(handles.slope_measure,'Value'))
     x = load(fin);
     fn = fields(x);
     y = x.(fn{1});
-    handles.old.avg_slope_data = abs(y.avg_slope_data);
-    handles.old.slope_data = abs(y.slope_data);
+    handles.old.avg_slope_data = y.avg_slope_data;
+    handles.old.slope_data = y.slope_data;
     guidata(hObject,handles)
 end
 
@@ -1266,7 +1309,7 @@ d = load(fin);
 fn = fieldnames(d);
 fn = fn{:};
 x = d.(fn).slope_data(:,1);
-y = abs(d.(fn).slope_data(:,2));
+y = d.(fn).slope_data(:,2);
 % Remove points from fitting
 ec = get(handles.excluded_current,'String');
 if ~isempty(ec)
@@ -1346,6 +1389,47 @@ function excluded_current_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function excluded_current_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to excluded_current (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in save_traces.
+function save_traces_Callback(hObject, eventdata, handles)
+% hObject    handle to save_traces (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of save_traces
+
+
+% --- Executes on button press in flip_slope_sign.
+function flip_slope_sign_Callback(hObject, eventdata, handles)
+% hObject    handle to flip_slope_sign (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of flip_slope_sign
+
+
+
+function ttl_Callback(hObject, eventdata, handles)
+% hObject    handle to ttl (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of ttl as text
+%        str2double(get(hObject,'String')) returns contents of ttl as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function ttl_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ttl (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

@@ -22,7 +22,7 @@ function varargout = channel_ps(varargin)
 
 % Edit the above text to modify the response to help channel_ps
 
-% Last Modified by GUIDE v2.5 07-May-2015 16:50:01
+% Last Modified by GUIDE v2.5 24-Dec-2015 11:00:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -306,5 +306,3 @@ function multi_color_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of multi_color
 handles.multicolor = logical(get(hObject,'Value'));
 guidata(hObject,handles);
-
-
