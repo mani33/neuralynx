@@ -22,7 +22,7 @@ function varargout = iocurve_online(varargin)
 
 % Edit the above text to modify the response to help iocurve_online
 
-% Last Modified by GUIDE v2.5 04-Jan-2016 15:32:00
+% Last Modified by GUIDE v2.5 01-Nov-2016 23:11:59
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -53,6 +53,9 @@ function iocurve_online_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to iocurve_online (see VARARGIN)
 
 % Choose default command line output for iocurve_online
+% Mani Subramaniyan
+% Dani Lab. University of Pennsylvania
+
 handles.slope_win = 1; %  ms
 handles.output = hObject;
 handles.pre_event_time = 5; % ms
@@ -62,7 +65,7 @@ set(handles.postEventTime,'String',handles.post_event_time);
 set(handles.preEventTime,'String',handles.pre_event_time);
 % Update handles structure
 % Default current levels to be tested
-dc = {'10','15','20','25','30','35','40','45','50','55','60','65','70','75','80','85',...
+dc = {'10','12.5','15','17.5','20','22.5','25','27.5','30','32.5','35','37.5','40','42.5','45','47.5','50','55','60','65','70','75','80','85',...
     '90','95','100','105','110','115','120','125','130','135','140','145',...
     '150','155','160','165','170','175','180','185','190','195','200','205','210','215','220','225','250','275','300','350','400'};
 set(handles.trial_curr,'String',dc);
@@ -961,7 +964,17 @@ if logical(get(handles.popspike_measure,'Value'))
     example.avg_popspike_data = compute_averaged_resp_measure_data(tempPopspikeData);
 end
 dn = uigetdir('E:\CheetahData\','Choose a directory to save slope data');
-fin = fullfile(dn,'example_data');
+str1 = [];
+str2 = [];
+if logical(get(handles.slope_measure,'Value'))
+    str1 = 'Slope';
+end
+if logical(get(handles.popspike_measure,'Value'))
+    str2 = 'Popspike';
+end
+rstr = ['_' str1 str2];
+filename = ['example_data_' handles.objectToRetrieve rstr];
+fin = fullfile(dn,filename);
 save(fin,'example')
 
 % --- Executes on button press in compute_cut_curr.
@@ -1430,6 +1443,107 @@ function ttl_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function ttl_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to ttl (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in slope_measure.
+function slope_measure_Callback(hObject, eventdata, handles)
+% hObject    handle to slope_measure (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of slope_measure
+
+
+
+
+
+function num_of_blocks_Callback(hObject, eventdata, handles)
+% hObject    handle to num_of_blocks (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of num_of_blocks as text
+%        str2double(get(hObject,'String')) returns contents of num_of_blocks as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function num_of_blocks_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to num_of_blocks (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in save_load_curr_levels.
+function save_load_curr_levels_Callback(hObject, eventdata, handles)
+% hObject    handle to save_load_curr_levels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+levels = str2num(get(handles.curr_levels,'String'));
+assert(~isempty(levels),'Enter some current levels in the box')
+nRep = str2double(get(handles.num_of_blocks,'String'));
+assert(~isnan(nRep),'Enter number of blocks')
+data = create_random_stim(levels,nRep);
+
+% Save data
+dn = uigetdir('E:\CheetahData\','Choose a directory to save current levels data');
+if ischar(dn)
+file = 'current_levels_io_uamps.mat';
+fin = fullfile(dn,file);
+save(fin,'data')
+else
+    warning('Current levels file not saved')
+end
+handles.exp.nBlocks = data.nBlocks;
+handles.exp.current_levels = data.current_levels;
+b1 = data.current_levels{1};
+set(handles.set_current,'String',[num2str(b1(1)) 'uA'])
+set(handles.block_num,'String','1')
+guidata(hObject,handles)
+
+
+
+function data = create_random_stim(levels,nRep)
+%% Generate random current level for input-output curve
+% levels = [25:25:100 150 250 350];
+n = length(levels);
+data.current_levels = cell(1,nRep);
+for i = 1:nRep
+    rn = randperm(n);
+    data.current_levels{i} = levels(rn)';
+    fprintf('set %d: %s\n',i,mat2str(data.current_levels{i}'))
+end
+% Save current levels to the directory of the latest data collection
+% session
+data.nBlocks = nRep;
+
+
+
+function curr_levels_Callback(hObject, eventdata, handles)
+% hObject    handle to curr_levels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of curr_levels as text
+%        str2double(get(hObject,'String')) returns contents of curr_levels as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function curr_levels_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to curr_levels (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
