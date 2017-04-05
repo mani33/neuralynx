@@ -54,7 +54,7 @@ function channel_ps_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for channel_ps
 handles.output = hObject;
-handles.duration = 2;
+handles.duration = 5;
 handles.overlay_plots = false;
 handles.multicolor = false;
 handles.xmax = 1; % freq max in KHz for display
@@ -119,7 +119,7 @@ temp = struct;
 while toc < end_time
     i = i + 1;
     % Get some basic information
-    [~, scale] = NlxSendCommand(['-GetADBitVolts ' handles.objectToRetrieve]);
+    [~, scale] = NlxSendCommand(['-GetVoltageConversion ' handles.objectToRetrieve]);
     scale = str2double(char(scale));
     [~,dataArray, ~, ~, Fs,...
         ~, ~, ~ ] = NlxGetNewCSCData(handles.objectToRetrieve);

@@ -22,7 +22,7 @@ function varargout = iocurve_online(varargin)
 
 % Edit the above text to modify the response to help iocurve_online
 
-% Last Modified by GUIDE v2.5 01-Nov-2016 23:11:59
+% Last Modified by GUIDE v2.5 05-Apr-2017 14:47:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -84,6 +84,7 @@ save('tempSlopeData','tempSlopeData')
 save('expSlopeData','expSlopeData')
 save('expPopspikeData','expPopspikeData')
 save('tempPopspikeData','tempPopspikeData')
+set(handles.message_update,'String','')
 guidata(hObject, handles);
 
 % UIWAIT makes iocurve_online wait for user response (see UIRESUME)
@@ -108,8 +109,15 @@ function start_Callback(hObject, eventdata, handles)
 add_path_to_neuralynx_lib
 connect_to_cheetah_server()
 [cheetahObjects, cheetahTypes] = get_cheetah_objects_and_types();
+
 set(handles.channel_list,'String',cheetahObjects)
-open_data_and_event_stream(cheetahObjects);
+suc = open_data_and_event_stream(cheetahObjects);
+if suc
+    mess = 'Opened data streams successfully';
+else
+    mess = 'Failed to open some data stream';
+end
+NlxSetApplicationName('I/O online')
 handles.cheetahObjects = cheetahObjects;
 handles.cheetahTypes = cheetahTypes;
 handles.sel_data = {};
@@ -118,7 +126,7 @@ handles.sel_time = {};
 [~,dd] =  NlxSendCommand('-GetDataDirectory ');
 dd = strtrim(strrep( dd{:},'"',''));
 handles.cheetah_data_dir = dd;
-
+set(handles.message_update,'String',mess)
 guidata(hObject,handles)
 
 
@@ -165,17 +173,22 @@ function stop_Callback(hObject, eventdata, handles)
 set(hObject,'UserData',1)
 %%close all open streams before disconnecting
 cheetahObjects = handles.cheetahObjects;
-for index = 1:length(cheetahObjects)
-    succeeded = NlxCloseStream(cheetahObjects(index));
-    if succeeded == 0
-        disp(sprintf('FAILED to close stream for %s', char(cheetahObjects(index))));
+n = length(cheetahObjects);
+succeeded = false(1,n);
+for index = 1:n
+    succeeded(index) = NlxCloseStream(cheetahObjects(index));
+    if succeeded(index) == 0
+        sprintf('FAILED to close stream for %s', char(cheetahObjects(index)));
         break;
     end
 end;
-if succeeded == 1
-    disp 'PASSED close stream for all current objects'
+suc = all(succeeded);
+if suc
+    mess = 'PASSED close stream for all current objects';
+else 
+    mess = 'FAILED to close stream';
 end
-
+set(handles.message_update,'String',mess)
 
 %Disconnects from the server and shuts down NetCom
 succeeded = NlxDisconnectFromServer();
@@ -258,7 +271,7 @@ tic
 while ~logical(get(handles.stop_watching,'Value'))
     kn = kn + 1;
     % Get some basic information
-    [~, scale] = NlxSendCommand(['-GetADBitVolts ' handles.objectToRetrieve]);
+    [~, scale] = NlxSendCommand(['-GetVoltageConversion ' handles.objectToRetrieve]);
     scale = str2double(char(scale));
     [~,  event_ts, ~, ttlValueArray, ~, ~, ~ ] = NlxGetNewEventData('Events');
     [~,dataArray, tsArray, ~, Fs,...
@@ -349,8 +362,10 @@ if logical(get(handles.save_traces,'Value')) && logical(get(handles.run_io_exp,'
         mkdir(dataPath)
     end
     % create file name based on current time
+    pfix = get(handles.trace_file_name_prefix,'String');
     ctime = round(clock);
-    fnc = sprintf('h%02dm%02ds%02d.mat',ctime(4),ctime(5),ctime(6));
+    ch = handles.objectToRetrieve;
+    fnc = sprintf('%s%sh%02dm%02ds%02d_TTL_%u.mat',pfix,ch,ctime(4),ctime(5),ctime(6),str2double(get(handles.ttl,'String')));
     fn = fullfile(dataPath,fnc);
     data.t1_ms = handles.temp.t(1); % ms
     data.uV = handles.temp.uV; % 
@@ -594,7 +609,7 @@ clevels = clevels(:);
 nStim = length(clevels);
 nLevels = nStim/handles.exp.nBlocks;
 cc = 0;
-bn_prev = 1;
+
 handles.exp.curr = [];
 handles.exp.slope = [];
 % Before start, remove data in existing buffer of Cheetah by simply reading
@@ -605,7 +620,7 @@ handles.exp.slope = [];
 while ~logical(get(handles.stop_watching,'Value'))
     kn = kn + 1;
     % Get some basic information
-    [~, scale] = NlxSendCommand(['-GetADBitVolts ' handles.objectToRetrieve]);
+    [~, scale] = NlxSendCommand(['-GetVoltageConversion ' handles.objectToRetrieve]);
     scale = str2double(char(scale));
     [~,  event_ts, ~, ttlValueArray, ~, ~, ~ ] = NlxGetNewEventData('Events');
     [~,dataArray, tsArray, ~, Fs,...
@@ -1544,6 +1559,52 @@ function curr_levels_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function curr_levels_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to curr_levels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function message_update_Callback(hObject, eventdata, handles)
+% hObject    handle to message_update (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of message_update as text
+%        str2double(get(hObject,'String')) returns contents of message_update as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function message_update_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to message_update (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function trace_file_name_prefix_Callback(hObject, eventdata, handles)
+% hObject    handle to trace_file_name_prefix (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of trace_file_name_prefix as text
+%        str2double(get(hObject,'String')) returns contents of trace_file_name_prefix as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function trace_file_name_prefix_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to trace_file_name_prefix (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

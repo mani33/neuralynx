@@ -1,27 +1,44 @@
 NetCom Log File Opened - File Name:  MatlabNetComLogfile.txt
-Time Opened: (mm/dd/yyyy): 11/01/2016 At Time: 21:02:59
-NetCom Version 2.1.1
+Time Opened: (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02
+NetCom Version 3.1.0
 
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:02:59 - NetworkNodeClient::InitializeClient() - Attempting to initialize Message Client connection.  serverName: localhost, portNumber: 26200
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:02:59 - NetworkNodeClient::InitializeClient() - Attempting to create Client Socket
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:02:59 - NetworkNodeClient::InitializeClient() - Client Socket created successfully
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:02:59 - NetworkNodeClient::InitializeClient() - Attempting to request information about our connection.
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:02:59 - NetworkNodeClient::InitializeClient() - Request for information was successful.
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:02:59 - NetworkNodeClient::InitializeClient() - Attempting to establish a connection to our server.
--* ERROR *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:00 - NetworkNodeClient::ConnectToServer() - Error Connecting To Server, error code: WSAECONNREFUSED - The attempt to connect was forcefully rejected.
--* ERROR *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:00 - NetworkNodeClient::InitializeClient() - Failed to connect to message server.
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:00 - NetworkNodeClient::InitializeClient() - Attempting to initialize Message Client connection.  serverName: localhost, portNumber: 26100
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:00 - NetworkNodeClient::InitializeClient() - Attempting to create Client Socket
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:00 - NetworkNodeClient::InitializeClient() - Client Socket created successfully
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:00 - NetworkNodeClient::InitializeClient() - Attempting to request information about our connection.
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:00 - NetworkNodeClient::InitializeClient() - Request for information was successful.
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:00 - NetworkNodeClient::InitializeClient() - Attempting to establish a connection to our server.
--* ERROR *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:01 - NetworkNodeClient::ConnectToServer() - Error Connecting To Server, error code: WSAECONNREFUSED - The attempt to connect was forcefully rejected.
--* ERROR *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:01 - NetworkNodeClient::InitializeClient() - Failed to connect to message server.
--* ERROR *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:09 - NetworkNodeClient::CloseStream() - Error, found object index was outside the range of available objects. objectIndex: -1
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:09 - NetworkNodeClient::ShutdownClient() - Attempting to Shutdown Message Client
--* WARNING *- (mm/dd/yyyy): 11/01/2016 At Time: 21:03:09 - NetworkNodeClient::ShutdownClient() - Unable to Close Message Client, Client has not yet been initialized
--* NOTICE *- (mm/dd/yyyy): 11/01/2016 At Time: 21:10:44 - NetworkNodeClient::ShutdownClient() - Attempting to Shutdown Message Client
--* WARNING *- (mm/dd/yyyy): 11/01/2016 At Time: 21:10:44 - NetworkNodeClient::ShutdownClient() - Unable to Close Message Client, Client has not yet been initialized
-Log File Closed - End of File
-
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02 - NetworkNodeClient::ConnectToServer - NetCom client connected to server localhost on port 26200.
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02 - NetworkNodeClient::DisconnectFromServer - NetCom client has been disconnected from its server.
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02 - NetworkNodeClient::ConnectToServer - NetCom client connected to server localhost on port 26208.
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02 - NodeConnectionClient::AddStreamObject - Object T4C1 has been added to our stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02 - NodeConnectionClient::AddStreamObject - Object T4C2 has been added to our stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02 - NodeConnectionClient::AddStreamObject - Object T4-C1 has been added to our stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02 - NodeConnectionClient::AddStreamObject - Object T4-C2 has been added to our stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02 - NodeConnectionClient::AddStreamObject - Object T4-C1S has been added to our stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02 - NodeConnectionClient::AddStreamObject - Object T4-C2S has been added to our stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02 - NodeConnectionClient::AddStreamObject - Object EVENTS has been added to our stream list. Stream Type: Event
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:11:02 - NodeConnectionClient::AddStreamObject - Object VT1 has been added to our stream list. Stream Type: Video
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4C1 stream reference count has been decremented to 0. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4C1 has been removed from the stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4C2 stream reference count has been decremented to 0. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4C2 has been removed from the stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4-C1 stream reference count has been decremented to 0. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4-C1 has been removed from the stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4-C2 stream reference count has been decremented to 0. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4-C2 has been removed from the stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4-C1S stream reference count has been decremented to 0. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4-C1S has been removed from the stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4-C2S stream reference count has been decremented to 0. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object T4-C2S has been removed from the stream list. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object EVENTS stream reference count has been decremented to 0. Stream Type: Event
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object EVENTS has been removed from the stream list. Stream Type: Event
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object VT1 stream reference count has been decremented to 0. Stream Type: Video
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::RemoveStreamObject - Object VT1 has been removed from the stream list. Stream Type: Video
+-*  ERROR  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::WaitOnConnection - Error receiving data, error code: WSAECONNABORTED - The virtual circuit was terminated due to a time-out or other failure. The application should close the socket as it is no longer usable. Stream Type: SingleElectrode
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::CloseServerStream - Call to wait for thread completion was successful for SingleElectrode stream processing thread. Stream Type: SingleElectrode
+-*  ERROR  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::WaitOnConnection - Error receiving data, error code: WSAECONNABORTED - The virtual circuit was terminated due to a time-out or other failure. The application should close the socket as it is no longer usable. Stream Type: Stereotrode
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::CloseServerStream - Call to wait for thread completion was successful for Stereotrode stream processing thread. Stream Type: Stereotrode
+-*  ERROR  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::WaitOnConnection - Error receiving data, error code: WSAECONNABORTED - The virtual circuit was terminated due to a time-out or other failure. The application should close the socket as it is no longer usable. Stream Type: Tetrode
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::CloseServerStream - Call to wait for thread completion was successful for Tetrode stream processing thread. Stream Type: Tetrode
+-*  ERROR  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::WaitOnConnection - Error receiving data, error code: WSAECONNABORTED - The virtual circuit was terminated due to a time-out or other failure. The application should close the socket as it is no longer usable. Stream Type: CSC
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::CloseServerStream - Call to wait for thread completion was successful for CSC stream processing thread. Stream Type: CSC
+-*  ERROR  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::WaitOnConnection - Error receiving data, error code: WSAECONNABORTED - The virtual circuit was terminated due to a time-out or other failure. The application should close the socket as it is no longer usable. Stream Type: Video
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::CloseServerStream - Call to wait for thread completion was successful for Video stream processing thread. Stream Type: Video
+-*  ERROR  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::WaitOnConnection - Error receiving data, error code: WSAECONNABORTED - The virtual circuit was terminated due to a time-out or other failure. The application should close the socket as it is no longer usable. Stream Type: Event
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NodeConnectionClient::CloseServerStream - Call to wait for thread completion was successful for Event stream processing thread. Stream Type: Event
+-* NOTICE  *- (mm/dd/yyyy): 04/05/2017 At Time: 15:18:12 - NetworkNodeClient::DisconnectFromServer - NetCom client has been disconnected from its server.

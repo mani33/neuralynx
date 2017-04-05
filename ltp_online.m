@@ -22,7 +22,7 @@ function varargout = ltp_online(varargin)
 
 % Edit the above text to modify the response to help ltp_online
 
-% Last Modified by GUIDE v2.5 28-Dec-2015 12:13:41
+% Last Modified by GUIDE v2.5 05-Apr-2017 14:48:51
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -119,7 +119,8 @@ add_path_to_neuralynx_lib
 connect_to_cheetah_server()
 [cheetahObjects, cheetahTypes] = get_cheetah_objects_and_types();
 set(handles.channel_list,'String',cheetahObjects)
-open_data_and_event_stream(cheetahObjects);
+% open_data_and_event_stream(cheetahObjects);
+suc = open_data_and_event_stream(cheetahObjects);
 handles.cheetahObjects = cheetahObjects;
 handles.cheetahTypes = cheetahTypes;
 handles.sel_data = {};
@@ -128,6 +129,15 @@ handles.sel_time = {};
 dd = strtrim(strrep( dd{:},'"',''));
 handles.cheetah_data_dir = dd;
 guidata(hObject,handles)
+
+NlxSetApplicationName('LTP online')
+
+if suc
+    mess = 'Opened data streams successfully';
+else
+    mess = 'Failed to open some data stream';
+end
+set(handles.message_update,'String',mess)
 
 
 % --- Executes on selection change in channel_list.
@@ -192,7 +202,13 @@ else
     disp 'PASSED disconnect from server'
 end
 
-
+suc = all(succeeded);
+if suc
+    mess = 'PASSED close stream for all current objects';
+else 
+    mess = 'FAILED to close stream';
+end
+set(handles.message_update,'String',mess)
 
 % --- Executes on button press in overlay.
 function overlay_Callback(hObject, eventdata, handles)
@@ -264,8 +280,10 @@ if logical(get(handles.save_traces,'Value'))
         mkdir(dataPath)
     end
     % create file name based on current time
+    ch = handles.objectToRetrieve;
+    pfix = get(handles.trace_file_name_prefix,'String');
     ctime = round(clock);
-    fnc = sprintf('h%02dm%02ds%02d.mat',ctime(4),ctime(5),ctime(6));
+    fnc = sprintf('%s%sh%02dm%02ds%02d_TTL_%u.mat',pfix,ch,ctime(4),ctime(5),ctime(6),str2double(get(handles.ttl,'String')));
     fn = fullfile(dataPath,fnc);
     data.t1_ms = handles.temp.t(1); % ms
     data.uV = handles.temp.uV; % 
@@ -431,7 +449,7 @@ while ~logical(get(handles.stop_watching,'Value'))
     nTestStim = str2double(get(handles.nPrePulses,'String'));
     kn = kn + 1;
     % Get some basic information
-    [~, scale] = NlxSendCommand(['-GetADBitVolts ' handles.objectToRetrieve]);
+    [~, scale] = NlxSendCommand(['-GetVoltageConversion ' handles.objectToRetrieve]);
     scale = str2double(char(scale));
     [~,  event_ts, ~, ttlValueArray, ~, ~, ~ ] = NlxGetNewEventData('Events');
     [~,dataArray, tsArray, ~, Fs,...
@@ -442,10 +460,16 @@ while ~logical(get(handles.stop_watching,'Value'))
     if ~isempty(Fs)
         handles.Fs = double(Fs(1));
     end
+
     % Event detected, collect more data
-    f = ttlValueArray == 128;
-    % Keep counting detected events
+%     f = ttlValueArray == 128;
+    f = ttlValueArray == str2double(get(handles.ttl,'String'));
     if any(f)
+        handles.temp.event_detected = true;
+        handles.temp.event_ts = double(event_ts(f));
+        kn = 0;
+        tic
+        % Keep counting detected events
         handles.numEvents(end+1) = length(find(f));
         set(handles.pulses_completed,'String',num2str(sum(handles.numEvents)))
     end
@@ -1339,3 +1363,72 @@ function flip_slope_sign_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of flip_slope_sign
+
+
+
+function ttl_Callback(hObject, eventdata, handles)
+% hObject    handle to ttl (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of ttl as text
+%        str2double(get(hObject,'String')) returns contents of ttl as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function ttl_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ttl (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function message_update_Callback(hObject, eventdata, handles)
+% hObject    handle to message_update (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of message_update as text
+%        str2double(get(hObject,'String')) returns contents of message_update as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function message_update_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to message_update (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function trace_file_name_prefix_Callback(hObject, eventdata, handles)
+% hObject    handle to trace_file_name_prefix (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of trace_file_name_prefix as text
+%        str2double(get(hObject,'String')) returns contents of trace_file_name_prefix as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function trace_file_name_prefix_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to trace_file_name_prefix (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
