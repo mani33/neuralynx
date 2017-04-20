@@ -158,7 +158,7 @@ function channel_list_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns channel_list contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from channel_list
 
-contents = cellstr(get(handles.channel_list,'Sgit sttring'));
+contents = cellstr(get(handles.channel_list,'String'));
 handles.objectToRetrieve =  contents{get(hObject,'Value')};
 ttl = str2double(get(handles.ttl,'String'));
 figname = sprintf('%s_TTL_%u',handles.objectToRetrieve,ttl);
