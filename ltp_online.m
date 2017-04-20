@@ -81,16 +81,28 @@ handles.numEvents = 0;
 linehandles = [];
 save('linehandles','linehandles')
 
+rfn = sprintf('%d',round(clock));
+mkdir(rfn)
+
 tempSlopeData = [];
 tempPopspikeData = [];
 ltpSlopeData = [];
 ltpPopspikeData = [];
 handles.old_slope_data = [];
 handles.old_popspike_data = [];
-save('tempSlopeData','tempSlopeData')
-save('tempPopspikeData','tempPopspikeData')
-save('ltpSlopeData','ltpSlopeData')
-save('ltpPopspikeData','ltpPopspikeData')
+
+handles.tempSlopeFn = fullfile(rfn,'tempSlopeData');
+handles.tempPopspikeFn = fullfile(rfn,'tempPopspikeData');
+handles.ltpSlopeFn = fullfile(rfn,'ltpSlopeData');
+handles.ltpPopspikeFn = fullfile(rfn,'ltpPopspikeData');
+handles.avgLtpSlopeFn = fullfile(rfn,'avgLtpSlopeData');
+handles.avgLtpPopspikeFn = fullfile(rfn,'avgLtpPopspikeData');
+
+save(handles.tempSlopeFn,'tempSlopeData')
+save(handles.tempPopspikeFn,'tempPopspikeData')
+save(handles.ltpSlopeFn,'ltpSlopeData')
+save(handles.ltpPopspikeFn,'ltpPopspikeData')
+
 set(handles.slope_latency_offset,'String','0')
 set(handles.bin_size,'String',5); % 5 min bin size
 set(handles.time_offset,'String','0')
@@ -406,7 +418,7 @@ function run_ltp_exp_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-clear_exp_data;
+clear_exp_data(handles);
 set(handles.stop_watching,'Value',0)
 guidata(hObject,handles);
 loop_period = 0.05;
@@ -667,9 +679,9 @@ box off
 
 handles.exp.popspike(handles.exp.cc) = h;
 % Save data
-load('ltpPopspikeData')
+load(handles.ltpPopspikeFn)
 ltpPopspikeData(end+1,:) = [handles.time(end) h];
-save('ltpPopspikeData','ltpPopspikeData')
+save(handles.ltpPopspikeFn,'ltpPopspikeData')
 
 
 function handles = compute_exp_slope(handles)
@@ -722,9 +734,9 @@ handles.exp.slope(handles.exp.cc) = slope;
 % Save data
 title('Slope')
 
-load('ltpSlopeData')
+load(handles.ltpSlopeFn)
 ltpSlopeData(end+1,:) = [handles.time(end) slope];
-save('ltpSlopeData','ltpSlopeData')
+save(handles.ltpSlopeFn,'ltpSlopeData')
 % avgLtpSlopeData = compute_averaged_slope_data(ltpSlopeData);
 % save('avgLtpSlopeData','avgLtpSlopeData')
 
@@ -783,31 +795,31 @@ function clear_exp_slope_data_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % clear_raw_traces previous run data
-clear_exp_data;
+clear_exp_data(handles);
 
-function clear_exp_data
-if exist('ltpSlopeData.mat','file')
-    load('ltpSlopeData')
+function clear_exp_data(handles)
+if exist(handles.ltpSlopeFn,'file')
+    load(handles.ltpSlopeFn)
     ltpSlopeData = [];
-    save('ltpSlopeData','ltpSlopeData')
+    save(handles.ltpSlopeFn,'ltpSlopeData')
 end
 
-if exist('avgLtpSlopeData.mat','file')
-    load('avgLtpSlopeData')
+if exist(handles.avgLtpSlopeFn,'file')
+    load(handles.avgLtpSlopeFn)
     avgLtpSlopeData = [];
-    save('avgLtpSlopeData','avgLtpSlopeData')
+    save(handles.avgLtpSlopeFn,'avgLtpSlopeData')
 end
 
-if exist('ltpPopspikeData.mat','file')
-    load('ltpPopspikeData')
+if exist(handles.ltpPopspikeFn,'file')
+    load(handles.ltpPopspikeFn)
     ltpPopspikeData = [];
-    save('ltpPopspikeData','ltpPopspikeData')
+    save(handles.ltpPopspikeFn,'ltpPopspikeData')
 end
 
-if exist('avgLtpPopspikeData.mat','file')
-    load('avgLtpPopspikeData')
+if exist(handles.avgLtpPopspikeFn,'file')
+    load(handles.avgLtpPopspikeFn)
     avgLtpPopspikeData = [];
-    save('avgLtpPopspikeData','avgLtpPopspikeData')
+    save(handles.avgLtpPopspikeFn,'avgLtpPopspikeData')
 end
 % --- Executes on button press in save_exp_data.
 function save_exp_data_Callback(hObject, eventdata, handles)
@@ -815,21 +827,22 @@ function save_exp_data_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % Save data
-load('ltpSlopeData')
+load(handles.ltpSlopeFn)
 ltp.slope_data = ltpSlopeData;
-load('ltpPopspikeData')
+load(handles.ltpPopspikeFn)
 ltp.popspike_data = ltpPopspikeData;
 
 % ltp.avg_slope_data = compute_averaged_slope_data(ltpSlopeData);
-fin = fullfile('E:\CheetahData\',['ltp_slope_data_' get_data_epoch(handles)]);
+ttl = [handles.objectToRetrieve '_' num2str(str2double(get(handles.ttl,'String')))];
+fin = fullfile('E:\CheetahData\',['ltp_slope_data_' ttl '_' get_data_epoch(handles)]);
 uisave('ltp',fin);
 
 
 function clearTempSlopeData
-if exist('tempSlopeData.mat','file')
-    load tempSlopeData
+if exist(handles.tempSlopeFn,'file')
+    load(handles.tempSlopeFn)
     tempSlopeData = [];
-    save('tempSlopeData','tempSlopeData')
+    save(handles.tempSlopeFn,'tempSlopeData')
 end
 
 
@@ -839,7 +852,7 @@ function update_exp_io_plot_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 axes(handles.ltp_slope_plot)
-load('ltpSlopeData')
+load(handles.ltpSlopeFn)
 da = ltpSlopeData;
 hold on
 % exp.avg_slope_data = compute_averaged_slope_data(ltpSlopeData);
@@ -853,7 +866,7 @@ function plot_slope_avg_Callback(hObject, eventdata, handles)
 % hObject    handle to plot_slope_avg (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-load('avgLtpSlopeData')
+load(handles.avgLtpSlopeFn)
 d = avgLtpSlopeData;
 axes(handles.ltp_slope_plot)
 hold on
@@ -961,9 +974,9 @@ function average_slopes_Callback(hObject, eventdata, handles)
 % hObject    handle to average_slopes (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-load ltpSlopeData
+load(handles.ltpSlopeFn)
 avgLtpSlopeData = compute_averaged_slope_data(ltpSlopeData);
-save('avgLtpSlopeData','avgLtpSlopeData')
+save(handles.avgLtpSlopeFn,'avgLtpSlopeData')
 
 
 

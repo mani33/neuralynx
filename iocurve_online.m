@@ -22,7 +22,7 @@ function varargout = iocurve_online(varargin)
 
 % Edit the above text to modify the response to help iocurve_online
 
-% Last Modified by GUIDE v2.5 05-Apr-2017 14:47:42
+% Last Modified by GUIDE v2.5 08-Apr-2017 13:39:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -80,10 +80,27 @@ expSlopeData = [];
 expPopspikeData = [];
 tempPopspikeData = [];
 set(handles.ttl,'String','128')
-save('tempSlopeData','tempSlopeData')
-save('expSlopeData','expSlopeData')
-save('expPopspikeData','expPopspikeData')
-save('tempPopspikeData','tempPopspikeData')
+% Create a unique folder name each time this gui opens to keep all temp
+% data
+
+rfn = sprintf('%d',round(clock));
+handles.tempDir = rfn;
+mkdir(rfn)
+handles.tempSlopeFn = fullfile(rfn,'tempSlopeData');
+handles.tempPopspikeFn = fullfile(rfn,'tempPopspikeData');
+handles.expSlopeFn = fullfile(rfn,'expSlopeData');
+handles.expPopspikeFn = fullfile(rfn,'expPopspikeData');
+handles.avgExpSlopeFn = fullfile(rfn,'avgExpSlopeData');
+handles.avgExpPopspikeFn = fullfile(rfn,'avgExpPopSpikeData');
+
+
+
+
+save(handles.tempSlopeFn,'tempSlopeData')
+save(handles.tempPopspikeFn,'tempPopspikeData')
+save(handles.expSlopeFn,'expSlopeData')
+save(handles.expPopspikeFn,'expPopspikeData')
+
 set(handles.message_update,'String','')
 guidata(hObject, handles);
 
@@ -420,7 +437,7 @@ xlim([-2 45])
 function handles = add_slope_datapoint_to_io_plot(handles)
 axes(handles.io_curve_slope)
 % Get current level used
-load tempSlopeData
+load(handles.tempSlopeFn)
 d = tempSlopeData;
 slope = d(end,2);
 plot(d(end,1),slope,'kO','markerfacecolor','k')
@@ -434,7 +451,7 @@ box off
 function handles = add_popspike_datapoint_to_io_plot(handles)
 axes(handles.io_curve_popspike)
 % Get current level used
-load tempPopspikeData
+load(handles.tempPopspikeFn)
 d = tempPopspikeData;
 ps = abs(d(end,2));
 plot(d(end,1),ps,'kO','markerfacecolor','k')
@@ -813,10 +830,9 @@ hold off
 % Save data
 contents = cellstr(get(handles.trial_curr,'String'));
 curr =  str2double(contents{get(handles.trial_curr,'Value')});
-load('tempPopspikeData')
+load(handles.tempPopspikeFn)
 tempPopspikeData(end+1,:) = [curr h bounds(:)'];
-save('tempPopspikeData','tempPopspikeData')
-
+save(handles.tempPopspikeFn,'tempPopspikeData')
 handles = add_popspike_datapoint_to_io_plot(handles);
 guidata(hObject,handles)
 
@@ -857,11 +873,10 @@ end
 contents = cellstr(get(handles.trial_curr,'String'));
 curr =  str2double(contents{get(handles.trial_curr,'Value')});
 handles.temp.curr_slope_start_time = [curr slope tb];
-load('tempSlopeData')
+load(handles.tempSlopeFn)
 
 tempSlopeData(end+1,:) = [curr slope tb];
-save('tempSlopeData','tempSlopeData')
-
+save(handles.tempSlopeFn,'tempSlopeData')
 handles = add_slope_datapoint_to_io_plot(handles);
 guidata(hObject,handles)
 title('Instantaneous Resp Measurement')
@@ -905,13 +920,13 @@ end
 
 handles.exp.slope(handles.exp.cc) = slope;
 % Save data
-load('expSlopeData')
+load(handles.expSlopeFn)
 
 
 expSlopeData(end+1,:) = [curr slope];
-save('expSlopeData','expSlopeData')
+save(handles.expSlopeFn,'expSlopeData')
 avgExpSlopeData = compute_averaged_resp_measure_data(expSlopeData);
-save('avgExpSlopeData','avgExpSlopeData')
+save(handles.avgExpSlopeFn,'avgExpSlopeData')
 
 function handles = compute_exp_popspike(handles)
 % hObject    handle to quantify_resp (see GCBO)
@@ -957,11 +972,11 @@ box off
 hold off
 
 % Save data
-load('expPopspikeData')
+load(handles.expPopspikeFn)
 expPopspikeData(end+1,:) = [curr h];
-save('expPopspikeData','expPopspikeData')
+save(handles.expPopspikeFn,'expPopspikeData')
 avgExpPopspikeData = compute_averaged_resp_measure_data(expPopspikeData);
-save('avgExpPopspikeData','avgExpPopspikeData')
+save(handles.avgExpPopspikeFn,'avgExpPopspikeData')
 
 % --- Executes on button press in save_resp_params.
 function save_resp_params_Callback(hObject, eventdata, handles)
@@ -969,12 +984,12 @@ function save_resp_params_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 if logical(get(handles.slope_measure,'Value'))
-    load('tempSlopeData')
+    load(handles.tempSlopeFn)
     example.slope_data = tempSlopeData;
     example.avg_slope_data = compute_averaged_resp_measure_data(tempSlopeData);
 end
 if logical(get(handles.popspike_measure,'Value'))
-    load('tempPopspikeData')
+    load(handles.tempPopspikeFn)
     example.popspike_data = tempPopspikeData;
     example.avg_popspike_data = compute_averaged_resp_measure_data(tempPopspikeData);
 end
@@ -988,7 +1003,7 @@ if logical(get(handles.popspike_measure,'Value'))
     str2 = 'Popspike';
 end
 rstr = ['_' str1 str2];
-filename = ['example_data_' handles.objectToRetrieve rstr];
+filename = ['example_data_' handles.objectToRetrieve rstr '_TTL_' num2str(str2double(get(handles.ttl,'String')))];
 fin = fullfile(dn,filename);
 save(fin,'example')
 
@@ -998,16 +1013,16 @@ function compute_cut_curr_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-if exist('expSlopeData.mat','file')
-    load expSlopeData
+if exist(handles.expSlopeFn,'file')
+    load(handles.expSlopeFn)
     if ~isempty(expSlopeData)
     plot(expSlopeData(:,1),expSlopeData(:,2),'kO','markerfacecolor','k')
     hold on
     end
 end
 
-if exist('expPopspikeData.mat','file') 
-    load expPopspikeData
+if exist(handles.expPopspikeFn,'file') 
+    load(handles.expPopspikeFn)
     if ~isempty(expPopspikeData)
     plot(expPopspikeData(:,1),abs(expPopspikeData(:,2)),'kO','markerfacecolor','k')
     hold on
@@ -1040,7 +1055,7 @@ function update_cut_curr(handles,lastStim)
 cv = str2double(get(handles.cut_percent,'String'));
 
 if logical(get(handles.slope_measure,'Value')) && exist('avgExpSlopeData.mat','file')
-    load('avgExpSlopeData')
+    load(handles.avgExpSlopeFn)
     sl = avgExpSlopeData(:,2);
 %     mi = min(sl);
     ma = max(sl);
@@ -1062,7 +1077,7 @@ end
 if logical(get(handles.popspike_measure,'Value')) && exist('avgExpPopspikeData.mat','file')
     
     cv = str2double(get(handles.cut_percent,'String'));
-    load('avgExpPopspikeData')
+    load(handles.avgExpPopspikeFn)
     sl = abs(avgExpPopspikeData(:,2));
 %     mi = min(sl);
     ma = max(sl);
@@ -1108,14 +1123,14 @@ function clear_last_datapoint_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 if logical(get(handles.slope_measure,'Value'))
-    load tempSlopeData
+    load(handles.tempSlopeFn)
     tempSlopeData(end,:) = [];
-    save('tempSlopeData','tempSlopeData')
+    save(handles.tempSlopeFn,'tempSlopeData')
 end
 if logical(get(handles.popspike_measure,'Value'))
-    load tempPopspikeData
+    load(handles.tempPopspikeFn)
     tempPopspikeData(end,:) = [];
-    save('tempPopspikeData','tempPopspikeData')
+    save(handles.tempPopspikeFn,'tempPopspikeData')
 end
 
 
@@ -1125,7 +1140,7 @@ function update_example_io_Callback(hObject, eventdata, handles)
 % hObject    handle to update_example_io (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-load tempSlopeData
+load(handles.tempSlopeFn)
 axes(handles.io_curve_slope)
 plot(tempSlopeData(:,1),tempSlopeData(:,2),'ko','markerfacecolor','k')
 hold on
@@ -1140,16 +1155,16 @@ function clear_exp_data_Callback(hObject, eventdata, handles)
 clear_exp_data;
 
 function clear_exp_data
-if exist('expSlopeData.mat','file')
-    load('expSlopeData')
+if exist(handles.expSlopeFn,'file')
+    load(handles.expSlopeFn)
     expSlopeData = [];
-    save('expSlopeData','expSlopeData')
+    save(handles.expSlopeFn,'expSlopeData')
 end
 
-if exist('avgExpSlopeData.mat','file')
-    load('avgExpSlopeData')
+if exist(handles.avgExpSlopeFn,'file')
+    load(handles.avgExpSlopeFn)
     avgExpSlopeData = [];
-    save('avgExpSlopeData','avgExpSlopeData')
+    save(handles.avgExpSlopeFn,'avgExpSlopeData')
 end
 
 
@@ -1159,7 +1174,7 @@ function plot_temp_avg_slope_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 if logical(get(handles.slope_measure,'Value'))
-    load tempSlopeData.mat
+    load(handles.tempSlopeFn)
     td = compute_averaged_resp_measure_data(tempSlopeData);
     axes(handles.io_curve_slope)
     hold on
@@ -1170,7 +1185,7 @@ if logical(get(handles.slope_measure,'Value'))
     grid on
 end
 if logical(get(handles.popspike_measure,'Value'))
-    load tempPopspikeData.mat
+    load(handles.tempPopspikeFn)
     td = compute_averaged_resp_measure_data(tempPopspikeData);
     axes(handles.io_curve_popspike)
     grid on
@@ -1186,11 +1201,11 @@ function save_exp_data_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % Save data
-load('expSlopeData')
+load(handles.expSlopeFn)
 exp.slope_data = expSlopeData;
 exp.avg_slope_data = compute_averaged_resp_measure_data(expSlopeData);
 
-load('expPopspikeData')
+load(handles.expPopspikeFn)
 exp.popspike_data = expPopspikeData;
 exp.avg_popspike_data = compute_averaged_resp_measure_data(expPopspikeData);
 
@@ -1199,15 +1214,15 @@ fin = fullfile(dn,'exp_slope_data');
 save(fin,'exp')
 
 function clearTempRespData
-if exist('tempSlopeData.mat','file')
-    load tempSlopeData
+if exist(handles.tempSlopeFn,'file')
+    load(handles.tempSlopeFn)
     tempSlopeData = [];
-    save('tempSlopeData','tempSlopeData')
+    save(handles.tempSlopeFn,'tempSlopeData')
 end
-if exist('tempPopspikeData.mat','file')
-    load tempPopspikeData
+if exist(handles.tempPopspikeFn,'file')
+    load(handles.tempPopspikeFn)
     tempPopspikeData = [];
-    save('tempPopspikeData','tempPopspikeData')
+    save(handles.tempPopspikeFn,'tempPopspikeData')
 end
 
 % --- Executes on button press in update_exp_io_plot.
@@ -1216,7 +1231,7 @@ function update_exp_io_plot_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 axes(handles.io_curve_slope)
-load('expSlopeData')
+load(handles.expSlopeFn)
 da = expSlopData;
 hold on
 plot(da(:,1),da(:,2),'k','markerfacecolor','k')
@@ -1227,7 +1242,7 @@ function plot_exp_slope_avg_Callback(hObject, eventdata, handles)
 % hObject    handle to plot_exp_slope_avg (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-load('avgExpSlopeData')
+load(handles.avgExpSlopeFn)
 axes(handles.io_curve_slope)
 hold on
 grid on
@@ -1613,3 +1628,10 @@ function trace_file_name_prefix_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes when figure1 is resized.
+function figure1_ResizeFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
