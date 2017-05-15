@@ -333,9 +333,9 @@ catch
     y = handles.temp.uV-mean(handles.temp.uV);
 end
 plot(t,y)
-xlabel('Time (ms)')
-ylabel('uV')
-title('Raw data')
+xlabel('Time (ms)','FontSize',6)
+ylabel('uV','FontSize',6)
+title('Raw data','FontSize',6)
 set(gca,'TickLength',[0.005 0.005])
 box off
 set_xlim;
@@ -566,8 +566,8 @@ assert(length(handles.exp.slope)==length(handles.exp.popspike),'data points for 
 hold on
 plot(handles.exp.slope(end),handles.exp.popspike(end),'kO')
 grid on
-xlabel('Slope')
-ylabel('Popspike')
+xlabel('Slope','FontSize',6)
+ylabel('Popspike','FontSize',6)
 
 function handles = plot_exp_slope(handles)
 axes(handles.ltp_slope_plot)
@@ -576,9 +576,9 @@ col = get_plot_color(handles);
 toff = str2double(get(handles.time_offset,'String'));
 t = toff+(handles.time(end)-handles.time(1))/60;
 plot(t,y,'O','color',col,'markerfacecolor',col);
-xlabel('Time (min)')
+xlabel('Time (min)','FontSize',6)
 % ylabel('Abs fEPSP slope (violet/s)')
-title('Slope LTP')
+title('Slope LTP','FontSize',6)
 hold on
 box off
 function handles = plot_exp_popspike(handles)
@@ -588,9 +588,9 @@ col = get_plot_color(handles);
 toff = str2double(get(handles.time_offset,'String'));
 t = toff+(handles.time(end)-handles.time(1))/60;
 plot(t,y,'O','color',col,'markerfacecolor',col);
-xlabel('Time (min)')
+xlabel('Time (min)','FontSize',6)
 % ylabel('Abs fEPSP slope (violet/s)')
-title('PopSpike LTP')
+title('PopSpike LTP','FontSize',6)
 hold on
 box off
 % --- Executes on button press in load_resp_params.
@@ -676,8 +676,8 @@ plot(tt(2),yy(2),'m*')
 plot(tt([1 3]),yy([1 3]),'k-')
 plot([tt(2) tt(2)],[yy(2) ypi],'m','linewidth',2)
 set_xlim;
-xlabel('Time(ms)')
-title('PopSpike')
+xlabel('Time(ms)','FontSize',6)
+title('PopSpike','FontSize',6)
 set(gca,'YTickLabel','')
 box off
 
@@ -736,7 +736,7 @@ else
 end
 handles.exp.slope(handles.exp.cc) = slope;
 % Save data
-title('Slope')
+title('Slope','FontSize',6)
 
 load(handles.ltpSlopeFn)
 ltpSlopeData(end+1,:) = [handles.time(end) slope];
@@ -1277,7 +1277,7 @@ t = handles.temp.t;
 plot(t,y,'k')
 hold on
 
-title('PopSpike Measurement')
+title('PopSpike Measurement','FontSize',6)
 [bounds,~] = ginput(4);
 handles.new.popspike_learning_data = [handles.exp.curr bounds(:)'];
 guidata(hObject,handles)
@@ -1290,15 +1290,15 @@ t = handles.temp.t;
 plot(t,y,'k')
 hold on
 yso = mconv(y,getGausswin(0.5,1000*1/handles.Fs));
-title('Slope Measurement')
+title('Slope Measurement','FontSize',6)
 
 dy = diff(yso);
 mInd = t>0.5 & t < min(100,t(end)); % ms
 dy = max(yso(mInd))*dy/max(dy(mInd));
 plot(t(2:end),dy,'r')
 xlim([-2 45])
-xlabel('Time(ms)')
-ylabel('Slope (V/s)')
+xlabel('Time(ms)','FontSize',6)
+ylabel('Slope (V/s)','FontSize',6)
 box off
 
 % Ginput the start and end points to calculate slope

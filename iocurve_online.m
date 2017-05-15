@@ -603,7 +603,7 @@ function run_io_exp_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-clear_exp_data;
+clear_exp_data(handles);
 set(handles.stop_watching,'Value',0)
 guidata(hObject,handles);
 loop_period = 0.05;
@@ -1154,7 +1154,7 @@ function clear_exp_data_Callback(hObject, eventdata, handles)
 % Clear previous run data
 clear_exp_data;
 
-function clear_exp_data
+function clear_exp_data(handles)
 if exist(handles.expSlopeFn,'file')
     load(handles.expSlopeFn)
     expSlopeData = [];
